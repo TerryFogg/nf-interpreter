@@ -11,15 +11,27 @@
 #include <nanoPAL.h>
 #include <target_platform.h>
 
-#define NUMBER_OF_LINES       16
-#define SPI_MAX_TRANSFER_SIZE (320 * 2 * NUMBER_OF_LINES) // 320 pixels 2 words wide ( 16 bit colour)
+#define NUMBER_OF_LINES 11
+#define SPI_MAX_TRANSFER_SIZE (480 * 3 * NUMBER_OF_LINES)       // 320 pixels wide, allow for 3 bytes per pixel for 18-bit SPI ILI9488
+
+#if SPI_MAX_TRANSFER_SIZE > 16384
+#pragma error "Buffer size greater than underlying SPI buffer support"
+#endif
 
 struct DisplayInterface g_DisplayInterface;
 
 // Saved gpio pins
-CLR_INT16 lcdReset;
-CLR_INT16 lcdDC;
-CLR_INT16 lcdBacklight;
+ControlPin lcdReset;
+ControlPin lcdDC;
+ControlPin lcdBacklight;
+ControlPin ChipSelect;
+
+GpioPinValue BacklightOn;
+GpioPinValue BacklightOff;
+GpioPinValue ResetActive;
+GpioPinValue ResetIdle;
+GpioPinValue DataMode;
+GpioPinValue CommandMode;
 
 CLR_UINT32 spiDeviceHandle = 0;
 CLR_INT16 outputBufferSize;
@@ -29,38 +41,51 @@ CLR_UINT8 spiCommandMode = 0; // 0 Command first byte, 1 = Command all bytes
 // Display Interface
 void DisplayInterface::Initialize(DisplayInterfaceConfig &config)
 {
-    SPI_DEVICE_CONFIGURATION spiConfig;
 
+    SPI_DEVICE_CONFIGURATION spiConfig;
     spiConfig.BusMode = SpiBusMode::SpiBusMode_master;
     spiConfig.Spi_Bus = config.Spi.spiBus;
-    spiConfig.DeviceChipSelect = config.Spi.chipSelect;
-    spiConfig.ChipSelectActive = false;
+    spiConfig.DeviceChipSelect = config.Spi.chipSelect.pin;
+    spiConfig.ChipSelectActive = config.Spi.reset.type.activeLow ? false : true; // false ==> low, true ==> high;
     spiConfig.Spi_Mode = SpiMode::SpiMode_Mode0;
     spiConfig.DataOrder16 = DataBitOrder::DataBitOrder_MSB;
-
-    spiConfig.Clock_RateHz = 40 * 1000 * 1000; // Spi clock speed.
+    spiConfig.Clock_RateHz = 50 * 1000 * 1000; // Spi clock speed.
 
     HRESULT hr = nanoSPI_OpenDevice(spiConfig, spiDeviceHandle);
     ASSERT(hr == ESP_OK);
     if (hr == S_OK)
     {
-        // TODO Reserve Pins
+        // Data/Command Pin
+        CommandMode = config.Spi.dataCommand.type.commandLow ? GpioPinValue_Low : GpioPinValue_High;
+        DataMode = (CommandMode == GpioPinValue_Low) ? GpioPinValue_High : GpioPinValue_Low;
+        lcdDC.pin = config.Spi.dataCommand.pin;
+        CPU_GPIO_ReservePin(lcdDC.pin, true);
+        CPU_GPIO_SetDriveMode(lcdDC.pin, GpioPinDriveMode::GpioPinDriveMode_Output);
 
         // Save pin numbers
-        lcdReset = config.Spi.reset;
-        lcdDC = config.Spi.dataCommand;
-        lcdBacklight = config.Spi.backLight;
+        lcdReset.pin = config.Spi.reset.pin;
+        if ((int32_t)lcdReset.pin != IMPLEMENTED_IN_HARDWARE)
+        {
+            ResetActive = config.Spi.reset.type.activeLow ? GpioPinValue_Low : GpioPinValue_High;
+            ResetIdle = (ResetActive == GpioPinValue_Low) ? GpioPinValue_High : GpioPinValue_Low;
+            CPU_GPIO_ReservePin(lcdReset.pin, true);
+            CPU_GPIO_SetDriveMode(lcdReset.pin, GpioPinDriveMode::GpioPinDriveMode_Output);
+            CPU_GPIO_SetPinState(lcdReset.pin, ResetActive);
+            OS_DELAY(100);
+            CPU_GPIO_SetPinState(lcdReset.pin, ResetIdle);
+            OS_DELAY(100);
+        }
 
         // Initialize non-SPI GPIOs
-        CPU_GPIO_SetDriveMode(lcdDC, GpioPinDriveMode::GpioPinDriveMode_Output);
-        CPU_GPIO_SetDriveMode(lcdReset, GpioPinDriveMode::GpioPinDriveMode_Output);
-        CPU_GPIO_SetDriveMode(lcdBacklight, GpioPinDriveMode::GpioPinDriveMode_Output);
-
-        // Reset the display
-        CPU_GPIO_SetPinState(lcdReset, GpioPinValue_Low);
-        OS_DELAY(100);
-        CPU_GPIO_SetPinState(lcdReset, GpioPinValue_High);
-        OS_DELAY(100);
+        lcdBacklight.pin = config.Spi.backLight.pin;
+        if ((int32_t)lcdBacklight.pin != IMPLEMENTED_IN_HARDWARE)
+        {
+            BacklightOn = config.Spi.backLight.type.activeLow ? GpioPinValue_Low : GpioPinValue_High;
+            BacklightOff = (BacklightOn == GpioPinValue_Low) ? GpioPinValue_High : GpioPinValue_Low;
+            CPU_GPIO_ReservePin(lcdBacklight.pin, true);
+            CPU_GPIO_SetDriveMode(lcdBacklight.pin, GpioPinDriveMode::GpioPinDriveMode_Output);
+            g_DisplayInterface.DisplayBacklight(true);
+        }
     }
 
     return;
@@ -76,6 +101,7 @@ void DisplayInterface::GetTransferBuffer(CLR_UINT8 *&TransferBuffer, CLR_UINT32 
     TransferBuffer = spiBuffer;
     TransferBufferSize = sizeof(spiBuffer);
 }
+
 void DisplayInterface::ClearFrameBuffer()
 {
     // Not Used
@@ -89,11 +115,11 @@ void DisplayInterface::WriteToFrameBuffer(
 {
     (void)frameOffset;
 
-    CPU_GPIO_SetPinState(lcdDC, GpioPinValue_Low); // Command mode
+    CPU_GPIO_SetPinState(lcdDC.pin, CommandMode); // Command mode
 
     SendBytes(&command, 1);
 
-    CPU_GPIO_SetPinState(lcdDC, GpioPinValue_High); // Data mode
+    CPU_GPIO_SetPinState(lcdDC.pin, DataMode); // Data mode
 
     SendBytes(data, dataCount);
     return;
@@ -111,13 +137,13 @@ void DisplayInterface::SendCommand(CLR_UINT8 arg_count, ...)
         parameters[i] = va_arg(ap, int);
     }
 
-    CPU_GPIO_SetPinState(lcdDC, GpioPinValue_Low); // Command mode
+    CPU_GPIO_SetPinState(lcdDC.pin, CommandMode); // Command mode
     if (spiCommandMode == 0)
     {
         // Send only first byte (command) with D/C signal low
         SendBytes(&parameters[0], 1);
 
-        CPU_GPIO_SetPinState(lcdDC, GpioPinValue_High); // Data mode
+        CPU_GPIO_SetPinState(lcdDC.pin, DataMode); // Data mode
 
         // Send remaining parameters ( if any )
         if (arg_count > 1)
@@ -129,19 +155,22 @@ void DisplayInterface::SendCommand(CLR_UINT8 arg_count, ...)
     {
         // Send all Command bytes with D/C signal low
         SendBytes(parameters, arg_count);
-        CPU_GPIO_SetPinState(lcdDC, GpioPinValue_High); // Data mode
+        CPU_GPIO_SetPinState(lcdDC.pin, DataMode); // Data mode
     }
 }
 
 void DisplayInterface::DisplayBacklight(bool on) // true = on
 {
+    if ((int32_t)lcdBacklight.pin != IMPLEMENTED_IN_HARDWARE) // If backlight power not under software control
+    {
     if (on)
     {
-        CPU_GPIO_SetPinState(lcdBacklight, GpioPinValue_High);
+            CPU_GPIO_SetPinState(lcdBacklight.pin, BacklightOn);
     }
     else
     {
-        CPU_GPIO_SetPinState(lcdBacklight, GpioPinValue_Low);
+            CPU_GPIO_SetPinState(lcdBacklight.pin, BacklightOff);
+        }
     }
     return;
 }

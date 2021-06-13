@@ -7,6 +7,7 @@
 #include "Graphics.h"
 #include "DisplayInterface.h"
 #include "Display.h"
+#include "InternalFont.h"
 
 /*
 SSD1331 is a 96RGB x 64 Dot Matrix OLED/PLED Segment/Common Driver with Controller
@@ -300,22 +301,38 @@ void DisplayDriver::BitBlt(int x, int y, int width, int height, CLR_UINT32 data[
     return;
 }
 
-CLR_UINT32 DisplayDriver::PixelsPerWord()
+void DisplayDriver::SendDataDirect(CLR_INT16 x, CLR_INT16 y, CLR_INT16 width, CLR_INT16 height, CLR_UINT16 data[])
+{
+    (void)x;
+    (void)y;
+    (void)width;
+    (void)height;
+    (void)data;
+}
+
+CLR_INT16 DisplayDriver::PixelsPerWord()
 {
     return (32 / Attributes.BitsPerPixel);
 }
 
-CLR_UINT32 DisplayDriver::WidthInWords()
+CLR_INT16 DisplayDriver::WidthInWords()
 {
     return ((Attributes.Width + (PixelsPerWord() - 1)) / PixelsPerWord());
 }
 
-CLR_UINT32 DisplayDriver::SizeInWords()
+CLR_INT16 DisplayDriver::SizeInWords()
 {
     return (WidthInWords() * Attributes.Height);
 }
 
-CLR_UINT32 DisplayDriver::SizeInBytes()
+CLR_INT16 DisplayDriver::SizeInBytes()
 {
     return (SizeInWords() * sizeof(CLR_UINT32));
+}
+
+void DisplayDriver::WriteChar(unsigned char c, int row, int col)
+{
+    (void)c;
+    (void)row;
+    (void)col;
 }

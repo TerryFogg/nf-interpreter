@@ -2,16 +2,22 @@
 # Copyright (c) .NET Foundation and Contributors
 # See LICENSE file in the project root for full license information.
 #
- 
 list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/nanoFramework.Runtime.Events")
 list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/PAL/include")
 list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/nanoFramework.Graphics/Graphics/Core")
+list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/nanoFramework.Graphics/Graphics/Core/Support/Fonts")
 list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/nanoFramework.Graphics/Graphics/Core/Support/Gif")
 list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/nanoFramework.Graphics/Graphics/Core/Support/Jpeg")
 list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/nanoFramework.Graphics/Graphics/Native")
 list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/nanoFramework.Graphics/TouchPanel/Core")
 list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/nanoFramework.Graphics/Graphics/Displays")
 list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/nanoFramework.Graphics/TouchPanel/Devices")
+
+#list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/System.Device.I2c")
+#list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/Windows.Devices.I2c")
+#list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/targets/ChibiOS/_nanoCLR/Windows.Devices.I2c")
+#list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/targets/ChibiOS/System.IO.Ports")
+
 
  set (  nanoFramework.Graphics_SRCS
         nanoPAL_Events_functions.cpp
@@ -76,6 +82,7 @@ list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/nanoFra
         Graphics.cpp
         GraphicsDriver.cpp
         GraphicsMemoryHeap.cpp
+        Initialize_Graphics.cpp
         
         nanoFramework_Graphics.cpp
         nanoFramework_Graphics_nanoFramework_UI_Ink.cpp
@@ -89,6 +96,8 @@ list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/nanoFra
         TouchPanel.cpp
         Gestures.cpp
         Ink.cpp
+
+        font8x8.cpp
         
         #Common Display/Touch Code
         "${GRAPHICS_DISPLAY}"
@@ -124,6 +133,7 @@ foreach(SRC_FILE ${nanoFramework.Graphics_SRCS})
         CMAKE_FIND_ROOT_PATH_BOTH     
     )
 
+        message("${SRC_FILE} >> ${nanoFramework.Graphics_SRC_FILE}")
     if (BUILD_VERBOSE)
         message("${SRC_FILE} >> ${nanoFramework.Graphics_SRC_FILE}")
     endif()

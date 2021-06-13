@@ -6,8 +6,10 @@
 
 #include "Graphics.h"
 #include "TouchDevice.h"
-#include "nanoFramework_Graphics.h"
+
 #include "Ink.h"
+#include "nanoFramework_Graphics.h"
+
 
 extern InkDriver g_InkDriver;
 

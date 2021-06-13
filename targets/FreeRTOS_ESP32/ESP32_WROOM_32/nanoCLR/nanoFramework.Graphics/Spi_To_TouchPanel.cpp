@@ -3,8 +3,6 @@
 // See LICENSE file in the project root for full license information.
 //
 
-#define UNUSED(x)  (void)x
-
 #ifndef _SPI_TO_TOUCHPANEL_H_
 #define _SPI_TO_TOUCHPANEL_H_ 1
 
@@ -25,9 +23,9 @@ bool TouchInterface::Initialize()
 CLR_UINT8* TouchInterface::Write_Read(CLR_UINT8* valuesToSend, CLR_UINT16 numberOfValuesToSend, CLR_UINT16 numberValuesExpected)
 {
 
-    UNUSED(valuesToSend);
-    UNUSED(numberOfValuesToSend);
-    UNUSED(numberValuesExpected);
+    (void)valuesToSend;
+    (void)numberOfValuesToSend;
+    (void)numberValuesExpected;
 
 
     return 0;

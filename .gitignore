@@ -63,3 +63,5 @@ CMake/Modules/FindINTEROP*.cmake
 # except build/, which is used as an MSBuild target.
 !**/packages/build/
 /targets/os/win32/.vs/nanoCLR/v16
+/BuildVS/ESP32-Wrover-Kit
+/BuildVS

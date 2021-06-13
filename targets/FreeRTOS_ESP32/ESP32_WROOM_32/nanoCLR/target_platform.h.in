@@ -11,7 +11,6 @@
 #ifndef _TARGET_PLATFORM_H_
 #define _TARGET_PLATFORM_H_ 1
 
-#define NANOCLR_GRAPHICS        @NANOCLR_GRAPHICS@
 #define HAL_USE_SPI             @HAL_USE_SPI_OPTION@
 #define HAL_USE_SDC             @HAL_USE_SDC_OPTION@
 

@@ -7,11 +7,14 @@
 #include "Graphics.h"
 #include "Display.h"
 #include "DisplayInterface.h"
+#include "InternalFont.h"
 
 extern DisplayDriver g_DisplayDriver;
 extern DisplayInterface g_DisplayInterface;
 extern GraphicsMemoryHeap g_GraphicsMemoryHeap;
 extern GraphicsDriver g_GraphicsDriver;
+
+CLR_INT16 lcdCursor;
 
 bool CLR_GFX_BitmapDescription::BitmapDescription_Initialize(int width, int height, int bitsPerPixel)
 {
@@ -726,3 +729,86 @@ HRESULT CLR_GFX_Bitmap::GetBitmap(CLR_RT_StackFrame &stack, bool fForWrite, CLR_
 {
     return GetBitmap(&stack.Arg0(), fForWrite, bitmap);
 }
+
+// ____________________________________________________________________
+//
+// This section of code is for native .cpp code to write to the display
+// useful for boot messages, or native debugging
+//
+// ____________________________________________________________________
+
+void WriteFormattedChar(unsigned char c)
+{
+    CLR_INT16 TextRows = g_DisplayDriver.Attributes.Height / InternalFont::Font_Height();
+    CLR_INT16 TextColumns = g_DisplayDriver.Attributes.Width / InternalFont::Font_Width();
+    CLR_INT16 CursorEndOfDisplay = TextColumns * TextRows;
+    if (lcdCursor > (g_DisplayDriver.Attributes.Height * g_DisplayDriver.Attributes.Width))
+        lcdCursor = 0;
+
+    if (c < 32)
+    {
+        switch (c)
+        {
+            case '\b': // backspace, clear previous char and move cursor back
+                if ((lcdCursor % TextColumns) > 0)
+                {
+                    lcdCursor--;
+                    g_DisplayDriver.WriteChar(' ', lcdCursor / TextColumns, lcdCursor % TextColumns);
+                }
+                break;
+            case '\f': // formfeed, clear screen and home cursor
+                // Clear();
+                lcdCursor = 0;
+                break;
+            case '\n': // newline
+                lcdCursor += TextColumns;
+                lcdCursor -= (lcdCursor % TextColumns);
+                break;
+            case '\r': // carriage return
+                lcdCursor -= (lcdCursor % TextColumns);
+                break;
+            case '\t': // horizontal tab
+                lcdCursor +=
+                    (InternalFont::Font_TabWidth() - ((lcdCursor % TextColumns) % InternalFont::Font_TabWidth()));
+                // deal with line wrap scenario
+                if ((lcdCursor % TextColumns) < InternalFont::Font_TabWidth())
+                {
+                    lcdCursor -= (lcdCursor % TextColumns); // bring the cursor to start of line
+                }
+                break;
+            case '\v': // vertical tab
+                lcdCursor += TextColumns;
+                break;
+            default:
+                // Unrecognized control character in LCD_WriteChar
+                // ignore for now
+                break;
+        }
+    }
+    else
+    {
+        int column = lcdCursor / TextColumns;
+        int row = lcdCursor % TextColumns;
+        g_DisplayDriver.WriteChar(c, row, column);
+        lcdCursor++;
+    }
+
+    if (lcdCursor >= CursorEndOfDisplay)
+    {
+        lcdCursor = 0;
+    }
+}
+
+extern "C"
+{
+    void lcd_printf(const char *format, va_list args)
+    {
+        char buffer[256];
+        int numberOfCharacters = snprintf(buffer, sizeof(buffer), format, args);
+        for (int i = 0; i < numberOfCharacters; i++)
+        {
+            WriteFormattedChar(buffer[i]);
+        }
+    }
+}
+

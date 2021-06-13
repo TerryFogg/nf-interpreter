@@ -8,6 +8,11 @@
 #include "Graphics.h"
 #include "nanoFramework_Graphics.h"
 
+
+
+
+
+
 HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_Font::CharWidth___I4__CHAR(CLR_RT_StackFrame& stack)
 {
     NANOCLR_HEADER();
@@ -147,6 +152,7 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_Font::ComputeExtent___VO
 HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_Font::ComputeTextInRect___VOID__STRING__BYREF_I4__BYREF_I4__I4__I4__I4__I4__U4(CLR_RT_StackFrame& stack)
 {
     NANOCLR_HEADER();
+
     CLR_GFX_Font* font;
     CLR_RT_HeapBlock* pArgs;
     LPCSTR            szText;
@@ -175,8 +181,12 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_Font::ComputeTextInRect_
     hbWidth.SetInteger((CLR_INT32)renderWidth); NANOCLR_CHECK_HRESULT(hbWidth.StoreToReference(pArgs[1], 0));
     hbHeight.SetInteger((CLR_INT32)renderHeight); NANOCLR_CHECK_HRESULT(hbHeight.StoreToReference(pArgs[2], 0));
 
+
     NANOCLR_NOCLEANUP();
+
+
 }
+
 
 
 // Used internally by DrawText and DrawTextInRect
@@ -203,12 +213,16 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_Font::GetFont(CLR_RT_Hea
     font = (CLR_GFX_Font*)blob->GetData();
 
     NANOCLR_NOCLEANUP();
+
 }
 
 // TODO: ? Internally used by DrawTextInRect
 
 HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_Font::GetFont(CLR_RT_StackFrame& stack, CLR_GFX_Font*& font)
 {
+
     return GetFont(&stack.Arg0(), font);
+
 }
+
 

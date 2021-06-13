@@ -6,13 +6,26 @@
 //---------------------------------------------------------------------------
 
 #include "Graphics.h"
+//-----------------------------------------------------------------------------
+
+
+
 #include "nanoFramework_Graphics.h"
+
+
 
 extern GraphicsDriver g_GraphicsDriver;
 
-// Helper routine 
-static HRESULT GetBitmap(CLR_RT_HeapBlock* pThis, bool fForWrite, CLR_GFX_Bitmap*& bitmap);
-static HRESULT GetBitmap(CLR_RT_StackFrame& stack, bool fForWrite, CLR_GFX_Bitmap*& bitmap);
+// Helper routine
+static HRESULT GetBitmap(CLR_RT_HeapBlock *pThis, bool fForWrite, CLR_GFX_Bitmap *&bitmap);
+static HRESULT GetBitmap(CLR_RT_StackFrame &stack, bool fForWrite, CLR_GFX_Bitmap *&bitmap);
+
+HRESULT GetBitmap(CLR_RT_StackFrame &stack, bool fForWrite, CLR_GFX_Bitmap *&bitmap)
+{
+    return GetBitmap(&stack.Arg0(), fForWrite, bitmap);
+}
+
+
 
 HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_Bitmap::_ctor___VOID__I4__I4(CLR_RT_StackFrame& stack)
 {
@@ -926,10 +939,5 @@ HRESULT GetBitmap(CLR_RT_HeapBlock* pThis, bool fForWrite, CLR_GFX_Bitmap*& bitm
     if ((bitmap->m_bm.m_flags & CLR_GFX_BitmapDescription::c_Compressed)) NANOCLR_SET_AND_LEAVE(CLR_E_INVALID_PARAMETER);
 
     NANOCLR_NOCLEANUP();
-}
-
-HRESULT GetBitmap(CLR_RT_StackFrame& stack, bool fForWrite, CLR_GFX_Bitmap*& bitmap)
-{
-    return GetBitmap(&stack.Arg0(), fForWrite, bitmap);
 }
 

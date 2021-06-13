@@ -5,11 +5,12 @@
 
 #include "Ink.h"
 #include "TouchPanel.h"
+#include "Debug_To_Display.h"
 
 #define INK_COMPLETION_TIME_USEC 10000 // 10ms - same as default touch completion
 
+InkDriver g_InkDriver;
 extern TouchPanelDriver g_TouchPanelDriver;
-struct InkDriver g_InkDriver;
 extern DisplayDriver g_DisplayDriver;
 extern GraphicsDriver g_GraphicsDriver;
 
@@ -25,9 +26,11 @@ HRESULT InkDriver::Initialize()
         m_InkRegionInfo.Bmp = NULL;
         m_ScreenBmp.width = g_DisplayDriver.Attributes.Width;
         m_ScreenBmp.height = g_DisplayDriver.Attributes.Height;
-        //   m_ScreenBmp.data = Display::GetFrameBuffer();
+        //   m_ScreenBmp.data = Display::GetFrameBuffer();   // maybe used by ifdef PLATFORM_WINDOWS that was removed
         m_ScreenBmp.transparentColor = PAL_GFX_Bitmap::c_InvalidColor;
     }
+
+    lcd_printf("INK: Initialized\n");
 
     return S_OK;
 }

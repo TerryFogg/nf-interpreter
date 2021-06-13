@@ -8,16 +8,21 @@
 #include <nanoHAL_Time.h>
 #include <nanoHAL_Types.h>
 #include <target_platform.h>
+#include <target_board.h>
 #include <nanoPAL_Events.h>
 #include <nanoPAL_BlockStorage.h>
 #include <nanoHAL_ConfigurationManager.h>
 #include <nanoHAL_Graphics.h>
+#include "sys_dev_i2c_native_target.h"
+#include "Debug_To_Display.h"
+#include "TouchPanel.h"
 
 void Storage_Initialize();
 void Storage_Uninitialize();
 
 extern "C" void FixUpHalSystemConfig();
 extern "C" void FixUpBlockRegionInfo();
+extern TouchPanelDriver g_TouchPanelDriver;
 
 //
 //  Reboot handlers clean up on reboot
@@ -45,12 +50,10 @@ void HAL_AddSoftRebootHandler(ON_SOFT_REBOOT_HANDLER handler)
 // in 'C'
 extern "C"
 {
-
     void nanoHAL_Initialize_C()
     {
         nanoHAL_Initialize();
     }
-
     void nanoHAL_Uninitialize_C()
     {
         nanoHAL_Uninitialize();
@@ -59,6 +62,17 @@ extern "C"
 
 void nanoHAL_Initialize()
 {
+    CPU_GPIO_Initialize();
+#if (HAL_USE_SPI == TRUE)
+    nanoSPI_Initialize();
+#endif
+
+// Initialise Graphics as soon as possible after devices defined
+#if (NANOCLR_GRAPHICS == TRUE)
+    PalEvent_Initialize();
+    InitializeGraphics();
+#endif
+
     HAL_CONTINUATION::InitializeList();
     HAL_COMPLETION ::InitializeList();
 
@@ -66,69 +80,42 @@ void nanoHAL_Initialize()
     FixUpHalSystemConfig();
     FixUpBlockRegionInfo();
 
-    BlockStorageList_Initialize();
+    lcd_printf("Fixup System & Block storage parameters\n");
 
     // initialize block storage devices
+    BlockStorageList_Initialize();
     BlockStorage_AddDevices();
-
     BlockStorageList_InitializeDevices();
 
     // allocate & clear managed heap region
     unsigned char *heapStart = NULL;
     unsigned int heapSize = 0;
 
+    lcd_printf("llocate & clear managed heap region\n");
     ::HeapLocation(heapStart, heapSize);
     memset(heapStart, 0, heapSize);
 
+    lcd_printf("Initialize Configuration\n");
     ConfigurationManager_Initialize();
 
-#if (NANOCLR_GRAPHICS == TRUE)
-    g_GraphicsMemoryHeap.Initialize();
-#endif
-
+    lcd_printf("Initialize Events\n");
     Events_Initialize();
 
+    lcd_printf("Initialize Storage\n");
     Storage_Initialize();
 
-    CPU_GPIO_Initialize();
-
-#if (HAL_USE_SPI == TRUE)
-    nanoSPI_Initialize();
-#endif
-
-#if (NANOCLR_GRAPHICS == TRUE)
-    // Initialise Graphics after devices initialised
-    DisplayInterfaceConfig displayConfig;
-
-    // Define SPI display configuration for Wrover
-    displayConfig.Spi.spiBus = 1;                // Spi Bus
-    displayConfig.Spi.chipSelect = GPIO_NUM_22;  // CS_1     GPIO22   CS
-    displayConfig.Spi.dataCommand = GPIO_NUM_21; // D/CX_1   GPIO21   D/C
-    displayConfig.Spi.reset = GPIO_NUM_18;       // RST_1    GPIO18   RESET
-    displayConfig.Spi.backLight = GPIO_NUM_5;    // GPIO5    Backlight
-
-    g_DisplayInterface.Initialize(displayConfig);
-    g_DisplayDriver.Initialize();
-
-    // g_TouchInterface.Initialize();
-    // g_TouchDevice.Initialize();
-
-    PalEvent_Initialize();
-    // Gesture_Initialize();
-    // Ink_Initialize();
-
-    g_DisplayDriver.Clear();
-
-#endif
-
-    // no PAL events required until now
-    // PalEvent_Initialize();
-
-    // Init Networking
+    lcd_printf("Initialize Network\n");
     Network_Initialize();
 
-    // Start Network Debugger
-    // SOCKETS_DbgInitialize( 0 );
+    lcd_printf("TargetHAL: Target HAL complete\n");
+
+    //while (true)
+    //{
+    //   TouchPointDevice t = g_TouchDevice.GetPoint();
+
+    //   lcd_printf("[%d,%d]  - %d \n", t.x, t.y, g_TouchPanelDriver.TouchInterruptOccured);
+    //}
+
 }
 
 void nanoHAL_Uninitialize()

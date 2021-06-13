@@ -8,15 +8,25 @@
 
 #include "nanoCLR_Types.h"
 
+#define IMPLEMENTED_IN_HARDWARE -1
+
+struct ControlPin
+{
+    GPIO_PIN pin;
+    union {
+        bool activeLow;
+        bool commandLow;
+    } type;
+};
 // Display configuration
 union DisplayInterfaceConfig {
     struct
     {
         CLR_INT8 spiBus;
-        GPIO_PIN chipSelect;
-        GPIO_PIN dataCommand;
-        GPIO_PIN reset;
-        GPIO_PIN backLight;
+        ControlPin chipSelect;
+        ControlPin dataCommand;
+        ControlPin reset;
+        ControlPin backLight;
     } Spi;
     struct
     {

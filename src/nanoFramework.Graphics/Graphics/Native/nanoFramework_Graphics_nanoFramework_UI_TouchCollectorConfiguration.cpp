@@ -11,6 +11,17 @@
 
 extern TouchPanelDriver g_TouchPanelDriver;
 
+
+HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration::
+    EnableTouchCollection___STATIC__VOID__I4__I4__I4__I4__I4__nanoFrameworkUIBitmap(CLR_RT_StackFrame &stack)
+{
+    NANOCLR_HEADER();
+
+    NANOCLR_SET_AND_LEAVE(stack.NotImplementedStub());
+
+    NANOCLR_NOCLEANUP();
+}
+
 HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration::GetTouchPoints___STATIC__VOID__BYREF_I4__SZARRAY_I2__SZARRAY_I2(CLR_RT_StackFrame& stack)
 {
     NANOCLR_HEADER();
@@ -42,7 +53,8 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfigurat
     NANOCLR_NOCLEANUP();
 }
 
-HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration::GetTouchInput___STATIC__VOID__nanoFrameworkUITouchCollectorConfigurationTouchInput__BYREF_I4__BYREF_I4__BYREF_I4(CLR_RT_StackFrame& stack)
+HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration::GetTouchInput___STATIC__VOID__nanoFrameworkUITouchCollectorConfigurationTouchInputCollector__BYREF_I4__BYREF_I4__BYREF_I4(
+        CLR_RT_StackFrame &stack)
 {
     NANOCLR_HEADER();
 
@@ -84,7 +96,8 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfigurat
     NANOCLR_NOCLEANUP();
 }
 
-HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration::SetTouchInput___STATIC__VOID__nanoFrameworkUITouchCollectorConfigurationTouchInput__I4__I4__I4(CLR_RT_StackFrame& stack)
+HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration::SetTouchInput___STATIC__VOID__nanoFrameworkUITouchCollectorConfigurationTouchInputCollector__I4__I4__I4(
+        CLR_RT_StackFrame &stack)
 {
     NANOCLR_HEADER();
 

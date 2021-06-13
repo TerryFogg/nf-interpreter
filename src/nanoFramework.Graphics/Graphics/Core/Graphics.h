@@ -29,7 +29,12 @@
 
 #include "Display.h"
 
-#define UNUSED(X) (void)X /* To avoid gcc/g++ warnings */
+
+extern "C"
+{
+    void InitializeGraphics(void);
+}
+
 
 // ???? Redefined below but gets past the compile error of not defined
 // CLR_GFX_Font needs CLR_GFX_Bitmap  and CLR_GFX_Bitmap needs CLR_GFX_Font
@@ -813,35 +818,6 @@ struct GraphicsDriver
 //   Gesture support
 //_____________________________________
 
-struct GestureDriver
-{
-    static const int c_IgnoreCount = 2;
-
-  private:
-    static bool s_initialized;
-
-    static PalEventListener m_gestureListener;
-    static HAL_COMPLETION m_gestureCompletion;
-    static CLR_UINT32 m_index;
-    static CLR_UINT32 m_currentState;
-    static CLR_UINT16 m_lastx;
-    static CLR_UINT16 m_lasty;
-    static CLR_UINT16 m_startx;
-    static CLR_UINT16 m_starty;
-
-    static CLR_UINT32 m_stateIgnoreIndex;
-    static CLR_UINT32 m_stateIgnoreHead;
-    static CLR_UINT32 m_stateIgnoreTail;
-    static CLR_UINT32 m_stateIgnoreBuffer[c_IgnoreCount];
-
-  public:
-    static HRESULT Initialize();
-    static HRESULT Uninitialize();
-    static bool ProcessPoint(CLR_UINT32 flags, CLR_UINT16 source, CLR_UINT16 x, CLR_UINT16 y, CLR_INT64 time);
-    static void ResetRecognition();
-    static void EventListener(uint32_t e, uint32_t param);
-    static void GestureContinuationRoutine(void *arg);
-};
 // Bitmap decoder
 typedef CLR_UINT32 COLORREF;
 enum BmpEncodingType
@@ -898,4 +874,7 @@ struct BmpOutputHelperParam
     const CLR_UINT8 *palette;
     CLR_UINT8 paletteDepth;
 };
+
+
+
 #endif // _GRAPHICS_H_

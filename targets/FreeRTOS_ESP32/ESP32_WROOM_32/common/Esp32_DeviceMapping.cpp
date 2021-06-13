@@ -12,7 +12,7 @@
 //
 int8_t Esp32_SPI_DevicePinMap[2][3] = {
     {GPIO_NUM_23, GPIO_NUM_25, GPIO_NUM_19}, // SPI1 - Wrover SPI display pins
-    {-1, -1, -1}                             // SPI2 - no pins assigned
+    {GPIO_NUM_13, GPIO_NUM_12, GPIO_NUM_14}  // SPI for MakerFabs 3.5" display and MakePython
 };
 
 //  Serial

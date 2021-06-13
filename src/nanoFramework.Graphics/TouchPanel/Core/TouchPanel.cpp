@@ -9,6 +9,7 @@
 #include "TouchDevice.h"
 #include "TouchInterface.h"
 #include <nanoPAL_Events.h>
+#include <Debug_To_Display.h>
 
 #define ONE_MHZ 1000000
 #define abs(a)  (((a) < 0) ? -(a) : (a))
@@ -36,9 +37,7 @@ CLR_UINT32 g_PAL_RunningAvg_Buffer_Size = TOUCH_POINT_RUNNINGAVG_BUFFER_SIZE;
 TOUCH_PANEL_CalibrationData g_TouchPanel_DefaultCalibration_Config = {1, 1, 0, 0, 1, 1};
 
 TouchPanelDriver g_TouchPanelDriver;
-
 extern TouchDevice g_TouchDevice;
-TouchInterface g_TouchInterface;
 
 /// Divide a by b, and return rounded integer.
 CLR_INT32 RoundDiv(CLR_INT32 a, CLR_INT32 b)
@@ -59,6 +58,8 @@ CLR_INT32 RoundDiv(CLR_INT32 a, CLR_INT32 b)
 
 HRESULT TouchPanelDriver::Initialize()
 {
+
+    g_TouchPanelDriver.TouchInterruptOccured = false;
     g_TouchPanelDriver.m_samplingTimespan =
         ONE_MHZ / g_TouchPanel_Sampling_Settings.SampleRate.CurrentSampleRateSetting;
 
@@ -77,11 +78,6 @@ HRESULT TouchPanelDriver::Initialize()
 
     g_TouchPanelDriver.m_touchMoveIndex = 0;
 
-    /// Following four should be done at HAL_Initialize(), currently an issue blocking the move.
-    // PalEvent_Initialize();
-    // Gesture_Initialize();
-    // Ink_Initialize();
-
     /// Enable the touch hardware.
     if (!g_TouchDevice.Enable(TouchIsrProc))
     {
@@ -91,11 +87,16 @@ HRESULT TouchPanelDriver::Initialize()
     g_TouchPanelDriver.m_touchCompletion.InitializeForISR(TouchPanelDriver::TouchCompletion, NULL);
     /// At this point we should be ready to recieve touch inputs.
 
+    lcd_printf("Touch Panel Initialize \n");
+    lcd_printf("--------------------- \n");
+
     return S_OK;
 }
 
 HRESULT TouchPanelDriver::Uninitialize()
 {
+    lcd_printf("Touch Panel Uninitialize \n");
+    lcd_printf("--------------------- \n");
     if (g_TouchPanelDriver.m_touchCompletion.IsLinked())
     {
         g_TouchPanelDriver.m_touchCompletion.Abort();
@@ -192,12 +193,10 @@ HRESULT TouchPanelDriver::SetCalibration(int pointCount, CLR_INT16 *sx, CLR_INT1
     return S_OK;
 }
 
+// Completion routine, called in every 10ms or so, when we are actively sampling stylus.
 void TouchPanelDriver::TouchCompletion(void *arg)
 {
-    if (arg == NULL)
-    {
-    }; // Avoid the unused parameter, and maybe in future is it needed?
-    /// Completion routine, called in every 10ms or so, when we are actively sampling stylus.
+    (void)arg;
     g_TouchPanelDriver.PollTouchPoint();
 }
 
@@ -498,7 +497,8 @@ void TouchPanelDriver::TouchIsrProc(GPIO_PIN pin, bool pinState, void *pArg)
     (void)pin;
     (void)pArg;
 
-    // Question does this method work?
+    g_TouchPanelDriver.TouchInterruptOccured = !g_TouchPanelDriver.TouchInterruptOccured;
+
     if (pinState == g_TouchPanel_Sampling_Settings.ActivePinStateForTouchDown)
     {
         g_TouchPanelDriver.m_InternalFlags |= Contact_Down; // Toggle contact flag.
@@ -518,17 +518,12 @@ void TouchPanelDriver::TouchIsrProc(GPIO_PIN pin, bool pinState, void *pArg)
 
 HRESULT TouchPanelDriver::GetTouchPoints(int *pointCount, CLR_INT16 *sx, CLR_INT16 *sy)
 {
-    if (pointCount == NULL)
-    {
-    }; // Avoid unused parameter, maybe used in the future?
-    if (sx == NULL)
-    {
-    }; // Avoid unused parameter, maybe used in the future?
-    if (sy == NULL)
-    {
-    }; // Avoid unused parameter, maybe used in the future?
+    (void)pointCount;
+    (void)sx;
+    (void)sy;
 
-    // To be revisited::    GLOBAL_LOCK(isr);
+    // - ?? What to do here  GLOBAL_LOCK(irq);
+
     return S_OK;
 }
 
@@ -557,21 +552,23 @@ HRESULT TouchPanelDriver::GetSetTouchInfo(CLR_UINT32 flags, CLR_INT32 *param1, C
         {
             CLR_INT32 ms_per_touchmove_event = *param1; // *param1 is in milliseconds
             CLR_INT32 min_ms_per_touchsample = 1000 / g_TouchPanel_Sampling_Settings.SampleRate.SamplesPerSecondLow;
-            CLR_INT32 ticks;
+
+            // INT32 ticks  :: From the code imported, ticks doesn't make sense, it will always be zero at entry
+            //____________________
+            CLR_INT32 ticks = 0; // set to zero to eliminate compiler check
+            //____________________
 
             // zero value indicates turning move notifications based on time off
-            if (ms_per_touchmove_event == 0)
-                ticks = 0x7FFFFFFF;
             // min_ms_per_touchsample is the sample frequency for the touch screen driver
             // Touch Move events are queued up and sent at the given time frequency (StylusMoveFrequency)
             // We should not set the move frequency to be less than the sample frequency, otherwise there
             // would be no data available occassionally.
+            if (ms_per_touchmove_event == 0)
+                ticks = 0x7FFFFFFF;
+            else if (ticks < min_ms_per_touchsample)
+                return CLR_E_OUT_OF_RANGE;
             else
-            {
                 ticks = TOUCH_PANEL_SAMPLE_MS_TO_TICKS(ms_per_touchmove_event);
-                if (ticks < min_ms_per_touchsample)
-                    return CLR_E_OUT_OF_RANGE;
-            }
 
             g_TouchPanel_Sampling_Settings.SampleRate.MaxTimeForMoveEvent_ticks = ticks;
         }
@@ -650,7 +647,7 @@ HRESULT TouchPanelDriver::GetTouchPoint(CLR_UINT32 *flags, TouchPoint **point)
     CLR_UINT8 conditionalFlag = *flags & 0xF0;
     CLR_INT32 index = 0;
 
-    // To be revisited::    GLOBAL_LOCK(isr);
+    // To be revisited::    GLOBAL_LOCK(irq);
 
     if ((g_TouchPanelDriver.m_head == g_TouchPanelDriver.m_tail) && g_PAL_TouchPointBufferSize > 1)
         return CLR_E_FAIL;

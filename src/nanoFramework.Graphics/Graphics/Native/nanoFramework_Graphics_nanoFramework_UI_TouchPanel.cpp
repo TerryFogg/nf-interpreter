@@ -4,9 +4,12 @@
 // See LICENSE file in the project root for full license information.
 //
 
+
 #include "Graphics.h"
 #include "TouchDevice.h"
 #include "Display.h"
+//-----------------------------------------------------------------------------
+
 #include "nanoFramework_Graphics.h"
 
 extern DisplayDriver g_DisplayDriver;
@@ -81,3 +84,11 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchPanel::GetCalibrati
     NANOCLR_NOCLEANUP();
 }
 
+HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchPanel::EnableInternal___VOID__BOOLEAN( CLR_RT_StackFrame &stack )
+{
+    NANOCLR_HEADER();
+
+    NANOCLR_SET_AND_LEAVE(stack.NotImplementedStub());
+
+    NANOCLR_NOCLEANUP();
+}

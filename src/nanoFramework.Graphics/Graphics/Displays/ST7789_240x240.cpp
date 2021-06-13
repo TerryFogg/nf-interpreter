@@ -10,20 +10,15 @@
 #include "InternalFont.h"
 
 /*
-ILI9341 is a 262,144-color single-chip SOC driver for a-TFT liquid crystal display with resolution of 240RGBx320
+ST7789 is a 262,144-color single-chip SOC driver for a-TFT liquid crystal display with resolution of 240RGBx320
 dots, comprising a 720-channel source driver, a 320-channel gate driver, 172,800 bytes GRAM for graphic
 display data of 240RGBx320 dots, and power supply circuit.
 
-ILI9341 supports parallel 8-/9-/16-/18-bit data bus MCU interface, 6-/16-/18-bit data bus RGB interface and
-3-/4-line serial peripheral interface (SPI).
 
-ILI9341 supports full color, 8-color display mode and sleep mode for precise power control by software.
-
-Power saving mode:
-   1. Sleep
-   2. Deep standby
-
-This implementation was initially written for 16 bit colour.
+NOTE: This code is a display for 240x240 which does not match the controller 240x320
+      For PORTRAIT and LANDSCAPE180 there are no problems because the remaining (320-240), 80 pixels are not displayed
+      For Portrait180 and LANDSCAPE the (320-240), 80 Pixels are at the start and are visible.
+      This causes an 80 pixel offset that must be programmed for.
 */
 
 /*
@@ -34,199 +29,185 @@ This implementation was initially written for 16 bit colour.
 struct DisplayDriver g_DisplayDriver;
 extern DisplayInterface g_DisplayInterface;
 
-enum ILI9341_CMD : CLR_UINT8
+enum ST7789_CMD : CLR_UINT8
 {
     NOP = 0x00,
     SOFTWARE_RESET = 0x01,
-    POWER_STATE = 0x10,
-    Sleep_Out = 0x11,
-    Gamma_Set = 0x26,
+    Sleep_IN = 0x10,
+    Sleep_OUT = 0x11,
+    ST7789_PTLON = 0x12,
+    Normal_Display_On = 0x13,
+    Display_Inversion_Off = 0x20,
+    Display_Inversion_On = 0x21,
     Display_OFF = 0x28,
     Display_ON = 0x29,
     Column_Address_Set = 0x2A,
-    Page_Address_Set = 0x2B,
+    Row_Address_Set = 0x2B,
     Memory_Write = 0x2C,
-    Colour_Set = 0x2D,
     Memory_Read = 0x2E,
     Partial_Area = 0x30,
-    Vertical_Scrolling_Definition = 0x33,
     Memory_Access_Control = 0x36,
-    Vertical_Scrolling_Start_Address = 0x37,
     Pixel_Format_Set = 0x3A,
     Memory_Write_Continue = 0x3C,
     Write_Display_Brightness = 0x51,
-    Frame_Rate_Control_Normal = 0xB1,
-    Display_Function_Control = 0xB6,
-    Entry_Mode_Set = 0xB7,
-    Power_Control_1 = 0xC0,
-    Power_Control_2 = 0xC1,
-    VCOM_Control_1 = 0xC5,
-    VCOM_Control_2 = 0xC7,
-    Power_Control_A = 0xCB,
-    Power_Control_B = 0xCF,
-    Positive_Gamma_Correction = 0xE0,
-    Negative_Gamma_Correction = 0XE1,
-    Driver_Timing_Control_A = 0xE8,
-    Driver_Timing_Control_B = 0xEA,
-    Power_On_Sequence = 0xED,
-    Enable_3G = 0xF2,
-    Pump_Ratio_Control = 0xF7
+    Porch_Setting = 0xB2,
+    Gate_Control = 0xB7,
+    VCOMS_Setting = 0xBB,
+    LCM_Control = 0xC0,
+    VDV_VRH_Command_Enable = 0xC2,
+    VRH_Set = 0xC3,
+    VDV_Set = 0xC4,
+    Frame_Rate_Control = 0xC6,
+    Power_Control_1 = 0xD0,
+    Positive_Voltage_Gamma = 0xE0,
+    Negative_Voltage_Gamma = 0xE1,
 };
-
-enum ILI9341_Orientation : CLR_UINT8
+enum ST7789_Orientation : CLR_UINT8
 {
-    MADCTL_MH = 0x04, // sets the Horizontal Refresh, 0=Left-Right and 1=Right-Left
-    MADCTL_ML = 0x10, // sets the Vertical Refresh, 0=Top-Bottom and 1=Bottom-Top
-    MADCTL_MV = 0x20, // sets the Row/Column Swap, 0=Normal and 1=Swapped
-    MADCTL_MX = 0x40, // sets the Column Order, 0=Left-Right and 1=Right-Left
-    MADCTL_MY = 0x80, // sets the Row Order, 0=Top-Bottom and 1=Bottom-Top
-
-    MADCTL_BGR = 0x08 // Blue-Green-Red pixel order
+    MADCTL_MH = BIT(2),     // bitmask for Horizontal Refresh, 0=Left-Right and 1=Right-Left
+    MADCTL_BGR = BIT(3),    // bitmask for RGB/BGR order
+    MADCTL_ML = BIT(4),     // bitmask for Vertical Refresh, 0=Top-Bottom and 1=Bottom-Top
+    MADCTL_MV = BIT(5),     // bitmask for page/column order
+    MADCTL_MX = BIT(6),     // bitmask for column address order
+    MADCTL_MY = BIT(7)      // bitmask for page address order
 };
 
 bool DisplayDriver::Initialize()
 {
-    // Initialize ILI9341 registers
-
     SetupDisplayAttributes();
 
-    // g_DisplayInterface.SendCommand(SOFTWARE_RESET);
-    // g_DisplayInterface.SendCommand(Display_OFF);
+    g_DisplayInterface.SendCommand(2, Pixel_Format_Set, 0x55);
+    g_DisplayInterface.SendCommand(6, Porch_Setting, 0x0c, 0x0c, 0x00, 0x33, 0x33);
 
-    g_DisplayInterface.SendCommand(4, Power_Control_B, 0x00, 0x83, 0X30);
-    g_DisplayInterface.SendCommand(5, Power_On_Sequence, 0x64, 0x03, 0X12, 0X81);
-    g_DisplayInterface.SendCommand(4, Driver_Timing_Control_A, 0x85, 0x01, 0x79);
-    g_DisplayInterface.SendCommand(6, Power_Control_A, 0x39, 0x2C, 0x00, 0x34, 0x02);
+    /* Internal LCD Voltage generator settings */
+    g_DisplayInterface.SendCommand(2, Gate_Control, 0x35);
+    g_DisplayInterface.SendCommand(2, VCOMS_Setting, 0x19);
+    g_DisplayInterface.SendCommand(2, LCM_Control, 0x2C);
+    g_DisplayInterface.SendCommand(2, VDV_VRH_Command_Enable, 0x01);
+    g_DisplayInterface.SendCommand(2, VRH_Set, 0x12);
+    g_DisplayInterface.SendCommand(2, VDV_Set, 0x20);
 
-    g_DisplayInterface.SendCommand(2, Pump_Ratio_Control, 0x20);
-    g_DisplayInterface.SendCommand(3, Driver_Timing_Control_B, 0x00, 0x00);
-    g_DisplayInterface.SendCommand(2, Power_Control_1, 0x26);
-    g_DisplayInterface.SendCommand(2, Power_Control_2, 0x11);
-    g_DisplayInterface.SendCommand(3, VCOM_Control_1, 0x35, 0x3E);
-    g_DisplayInterface.SendCommand(2, VCOM_Control_2, 0xBE);
-    g_DisplayInterface.SendCommand(2, Memory_Access_Control, 0x28); // Portrait?
-    g_DisplayInterface.SendCommand(2, Pixel_Format_Set, 0x55);      // 0x55 -> 16 bit
-    g_DisplayInterface.SendCommand(3, Frame_Rate_Control_Normal, 0x00, 0x1B);
-    g_DisplayInterface.SendCommand(2, Enable_3G, 0x08);
-    g_DisplayInterface.SendCommand(2, Gamma_Set, 0x01); // Gamma curve selected (0x01, 0x02, 0x04, 0x08)
+    g_DisplayInterface.SendCommand(2, Frame_Rate_Control, 0x0F);
+    g_DisplayInterface.SendCommand(3, Power_Control_1, 0xA4, 0xA1);
     g_DisplayInterface.SendCommand(
-        16,
-        Positive_Gamma_Correction,
-        0x1F,
-        0x1A,
-        0x18,
-        0x0A,
-        0x0F,
-        0x06,
-        0x45,
-        0X87,
-        0x32,
-        0x0A,
-        0x07,
-        0x02,
-        0x07,
-        0x05,
-        0x00); // gamma set 4
-    g_DisplayInterface.SendCommand(
-        16,
-        Negative_Gamma_Correction,
-        0x00,
-        0x25,
-        0x27,
-        0x05,
-        0x10,
-        0x09,
-        0x3A,
-        0x78,
-        0x4D,
-        0x05,
+        15,
+        Positive_Voltage_Gamma,
+        0xD0,
+        0x04,
+        0x0D,
+        0x11,
+        0x13,
+        0x2B,
+        0x3F,
+        0x54,
+        0x4C,
         0x18,
         0x0D,
-        0x38,
-        0x3A,
-        0x1F);
-    g_DisplayInterface.SendCommand(5, Column_Address_Set, 0x00, 0x00, 0x00, 0xEF); // Size = 239
-    g_DisplayInterface.SendCommand(5, Page_Address_Set, 0x00, 0x00, 0x01, 0x3f);   // Size = 319
-    g_DisplayInterface.SendCommand(1, Memory_Write);
-    g_DisplayInterface.SendCommand(2, Entry_Mode_Set, 0x07); // Entry mode set
-    g_DisplayInterface.SendCommand(5, Display_Function_Control, 0x0A, 0x82, 0x27, 0x00);
-
-    g_DisplayInterface.SendCommand(1, Sleep_Out);
-    OS_DELAY(20); // Send Sleep Out command to display : no parameter
-    g_DisplayInterface.SendCommand(1, Display_ON);
-    OS_DELAY(20);                           // Send Sleep Out command to display : no parameter
-    g_DisplayInterface.SendCommand(1, NOP); // End of sequence
-    OS_DELAY(20);                           // Send Sleep Out command to display : no parameter
+        0x0B,
+        0x1F,
+        0x23);
+    g_DisplayInterface.SendCommand(
+        15,
+        Negative_Voltage_Gamma,
+        0xD0,
+        0x04,
+        0x0C,
+        0x11,
+        0x13,
+        0x2C,
+        0x3F,
+        0x44,
+        0x51,
+        0x2F,
+        0x1F,
+        0x1F,
+        0x20,
+        0x23);
 
     SetDefaultOrientation();
+
+    g_DisplayInterface.SendCommand(1, Display_Inversion_On);
+    g_DisplayInterface.SendCommand(1, Sleep_OUT);
+    g_DisplayInterface.SendCommand(1, Normal_Display_On);
+    g_DisplayInterface.SendCommand(1, Display_ON);
+    OS_DELAY(50);
+    g_DisplayInterface.SendCommand(1, NOP); // End of sequence
+    OS_DELAY(20);
+
+    g_DisplayInterface.DisplayBacklight(true);
 
     Clear();
 
     return true;
 }
-
 void DisplayDriver::SetupDisplayAttributes()
 {
     // Define the LCD/TFT resolution
-    Attributes.LongerSide = 320;
+    Attributes.LongerSide = 240;
     Attributes.ShorterSide = 240;
     Attributes.PowerSave = PowerSaveState::NORMAL;
     Attributes.BitsPerPixel = 16;
     g_DisplayInterface.GetTransferBuffer(Attributes.TransferBuffer, Attributes.TransferBufferSize);
-
     return;
 }
-
 bool DisplayDriver::ChangeOrientation(DisplayOrientation orientation)
 {
     switch (orientation)
     {
-        case PORTRAIT:
-        case PORTRAIT180:
-            return false;
-
-        case LANDSCAPE:
-        case LANDSCAPE180:
-            Attributes.Height = Attributes.ShorterSide;
-            Attributes.Width = Attributes.LongerSide;
-            g_DisplayInterface.SendCommand(
-                2,
-                Memory_Access_Control,
-                (MADCTL_MY | MADCTL_MX | MADCTL_MV | MADCTL_BGR)); // Landscape  + BGR
-            break;
+    case PORTRAIT:
+        Attributes.Height = Attributes.LongerSide;
+        Attributes.Width = Attributes.ShorterSide;
+        g_DisplayInterface.SendCommand(2, Memory_Access_Control,0);
+        break;
+    case PORTRAIT180:
+        // Set NOTE, in comments above for explanation of adjustments for PORTRAIT180 and LANDSCAPE
+        // Currently not fixed
+        Attributes.Height = Attributes.LongerSide;
+        Attributes.Width = Attributes.ShorterSide;
+        g_DisplayInterface.SendCommand(2, Memory_Access_Control, (MADCTL_MX | MADCTL_MY ));
+        break;
+    case LANDSCAPE:
+        // Set NOTE, in comments above for explanation of adjustments for PORTRAIT180 and LANDSCAPE
+        // Currently not fixed
+        Attributes.Height = Attributes.ShorterSide;
+        Attributes.Width = Attributes.LongerSide;
+        g_DisplayInterface.SendCommand(2, Memory_Access_Control, (MADCTL_MV | MADCTL_MY ));
+        break;
+    case LANDSCAPE180:
+        Attributes.Height = Attributes.ShorterSide;
+        Attributes.Width = Attributes.LongerSide;
+        g_DisplayInterface.SendCommand(2, Memory_Access_Control, (MADCTL_MV | MADCTL_MX ));
+        break;
     }
+    // Note: colstart/rowstart not working 
+   // SetWindow(colstart, rowstart, Attributes.Width - 1, Attributes.Height - 1);
     return true;
 }
-
 void DisplayDriver::SetDefaultOrientation()
 {
-    ChangeOrientation(LANDSCAPE);
+    ChangeOrientation(PORTRAIT);
 }
-
 bool DisplayDriver::Uninitialize()
 {
     Clear();
-
     // Anything else to Uninitialize?
     return TRUE;
 }
-
 void DisplayDriver::PowerSave(PowerSaveState powerState)
 {
     switch (powerState)
     {
-        default:
-            // Illegal fall through to Power on
-        case PowerSaveState::NORMAL:
-            g_DisplayInterface.SendCommand(3, POWER_STATE, 0x00, 0x00); // leave sleep mode
-            break;
-        case PowerSaveState::SLEEP:
-            g_DisplayInterface.SendCommand(3, POWER_STATE, 0x00, 0x01); // enter sleep mode
-            break;
+    default:
+        // illegal fall through to Power on
+    case PowerSaveState::NORMAL:
+        g_DisplayInterface.SendCommand(3, Sleep_IN, 0x00, 0x00); // leave sleep mode
+        break;
+    case PowerSaveState::SLEEP:
+        g_DisplayInterface.SendCommand(3, Sleep_IN, 0x00, 0x01); // enter sleep mode
+        break;
     }
     return;
 }
-
 void DisplayDriver::Clear()
 {
     // Clear the ILI9341 controller frame
@@ -256,8 +237,8 @@ void DisplayDriver::DisplayBrightness(CLR_INT16 brightness)
 {
     _ASSERTE(brightness >= 0 && brightness <= 100);
     g_DisplayInterface.SendCommand(2, Write_Display_Brightness, (CLR_UINT8)brightness);
+    return;
 }
-
 bool DisplayDriver::SetWindow(CLR_INT16 x1, CLR_INT16 y1, CLR_INT16 x2, CLR_INT16 y2)
 {
     CLR_UINT8 Column_Address_Set_Data[4];
@@ -273,21 +254,20 @@ bool DisplayDriver::SetWindow(CLR_INT16 x1, CLR_INT16 y1, CLR_INT16 x2, CLR_INT1
         Column_Address_Set_Data[2],
         Column_Address_Set_Data[3]);
 
-    CLR_UINT8 Page_Address_Set_Data[4];
-    Page_Address_Set_Data[0] = (y1 >> 8) & 0xFF;
-    Page_Address_Set_Data[1] = y1 & 0xFF;
-    Page_Address_Set_Data[2] = (y2 >> 8) & 0xFF;
-    Page_Address_Set_Data[3] = y2 & 0xFF;
+    CLR_UINT8 Row_Address_Set_Data[4];
+    Row_Address_Set_Data[0] = (y1 >> 8) & 0xFF;
+    Row_Address_Set_Data[1] = y1 & 0xFF;
+    Row_Address_Set_Data[2] = (y2 >> 8) & 0xFF;
+    Row_Address_Set_Data[3] = y2 & 0xFF;
     g_DisplayInterface.SendCommand(
         5,
-        Page_Address_Set,
-        Page_Address_Set_Data[0],
-        Page_Address_Set_Data[1],
-        Page_Address_Set_Data[2],
-        Page_Address_Set_Data[3]);
+        Row_Address_Set,
+        Row_Address_Set_Data[0],
+        Row_Address_Set_Data[1],
+        Row_Address_Set_Data[2],
+        Row_Address_Set_Data[3]);
     return true;
 }
-
 void DisplayDriver::BitBlt(int x, int y, int width, int height, CLR_UINT32 data[])
 {
     // 16 bit colour  RRRRRGGGGGGBBBBB mode 565
@@ -297,19 +277,19 @@ void DisplayDriver::BitBlt(int x, int y, int width, int height, CLR_UINT32 data[
 
     SetWindow(x, y, (x + width - 1), (y + height - 1));
 
-    CLR_UINT16 *StartOfLine_src = (CLR_UINT16 *)&data[0];
+    CLR_UINT16* StartOfLine_src = (CLR_UINT16*)&data[0];
 
     // Position to offset in data[] for start of window
     CLR_UINT16 offset = (y * Attributes.Width) + x;
     StartOfLine_src += offset;
 
-    CLR_UINT8 *transferBufferIndex = Attributes.TransferBuffer;
+    CLR_UINT8* transferBufferIndex = Attributes.TransferBuffer;
     CLR_UINT32 transferBufferCount = Attributes.TransferBufferSize;
     CLR_UINT8 command = Memory_Write;
 
     while (height--)
     {
-        CLR_UINT16 *src;
+        CLR_UINT16* src;
         int xCount;
 
         src = StartOfLine_src;
@@ -318,6 +298,7 @@ void DisplayDriver::BitBlt(int x, int y, int width, int height, CLR_UINT32 data[
         while (xCount--)
         {
             CLR_UINT16 data = *src++;
+            // Swap bytes
             *transferBufferIndex++ = (data >> 8);
             *transferBufferIndex++ = data & 0xff;
             transferBufferCount -= 2;
@@ -367,17 +348,14 @@ CLR_INT16 DisplayDriver::PixelsPerWord()
 {
     return (32 / Attributes.BitsPerPixel);
 }
-
 CLR_INT16 DisplayDriver::WidthInWords()
 {
     return ((Attributes.Width + (PixelsPerWord() - 1)) / PixelsPerWord());
 }
-
 CLR_INT16 DisplayDriver::SizeInWords()
 {
     return (WidthInWords() * Attributes.Height);
 }
-
 CLR_INT16 DisplayDriver::SizeInBytes()
 {
     return (SizeInWords() * sizeof(CLR_UINT32));

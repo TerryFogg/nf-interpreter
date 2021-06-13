@@ -73,7 +73,7 @@ DisplayOrientation GraphicsDriver::GetOrientation()
 void GraphicsDriver::ChangeOrientation(DisplayOrientation newOrientation)
 {
     // Not implemented ( Maybe in the future?)
-    UNUSED(newOrientation);
+    (void)newOrientation;
     return;
 }
 

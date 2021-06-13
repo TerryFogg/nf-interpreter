@@ -50,50 +50,6 @@ extern "C"
 
 void nanoHAL_Initialize()
 {
-    // initialize global mutex
-    // chMtxObjectInit(&interpreterGlobalMutex);
-
-    HAL_CONTINUATION::InitializeList();
-    HAL_COMPLETION ::InitializeList();
-
-    BlockStorageList_Initialize();
-
-    // initialize block storage devices
-    BlockStorage_AddDevices();
-
-    BlockStorageList_InitializeDevices();
-
-    // clear managed heap region
-    unsigned char *heapStart = NULL;
-    unsigned int heapSize = 0;
-
-    ::HeapLocation(heapStart, heapSize);
-    memset(heapStart, 0, heapSize);
-
-#if (NANOCLR_GRAPHICS == TRUE)
-    g_GraphicsMemoryHeap.Initialize();
-#endif
-
-    ConfigurationManager_Initialize();
-
-    Events_Initialize();
-
-    CPU_GPIO_Initialize();
-
-#if (HAL_USE_CAN == TRUE)
-
-#if defined(STM32_CAN_USE_CAN1) && (STM32_CAN_USE_CAN1 == TRUE)
-    Can1_PAL.Driver = NULL;
-#endif
-#if (STM32_CAN_USE_CAN2) && (STM32_CAN_USE_CAN2 == TRUE)
-    Can2_PAL.Driver = NULL;
-#endif
-#if (STM32_CAN_USE_CAN3) && (STM32_CAN_USE_CAN3 == TRUE)
-    Can3_PAL.Driver = NULL;
-#endif
-
-#endif
-
 #if (HAL_USE_I2C == TRUE)
 
 #if defined(STM32_I2C_USE_I2C1) && (STM32_I2C_USE_I2C1 == TRUE)
@@ -113,6 +69,12 @@ void nanoHAL_Initialize()
 
 #if (HAL_USE_SPI == TRUE)
     nanoSPI_Initialize();
+#endif
+
+#if (NANOCLR_GRAPHICS == TRUE)
+    // Initialise Graphics as soon as possible after devices defined
+    PalEvent_Initialize();
+    InitializeGraphics();
 #endif
 
 #if (HAL_USE_UART == TRUE)
@@ -144,17 +106,44 @@ void nanoHAL_Initialize()
 
 #endif
 
-#if (NANOCLR_GRAPHICS == TRUE)
-    DisplayInterfaceConfig config; // not used for DSI display
-    g_DisplayInterface.Initialize(config);
-    g_DisplayDriver.Initialize();
+    // initialize global mutex
+    // chMtxObjectInit(&interpreterGlobalMutex);
 
-    // g_TouchInterface.Initialize();
-    // g_TouchDevice.Initialize();
+    HAL_CONTINUATION::InitializeList();
+    HAL_COMPLETION ::InitializeList();
 
-    // PalEvent_Initialize();
-    // Gesture_Initialize();
-    // Ink_Initialize();
+    BlockStorageList_Initialize();
+
+    // initialize block storage devices
+    BlockStorage_AddDevices();
+
+    BlockStorageList_InitializeDevices();
+
+    // clear managed heap region
+    unsigned char *heapStart = NULL;
+    unsigned int heapSize = 0;
+
+    ::HeapLocation(heapStart, heapSize);
+    memset(heapStart, 0, heapSize);
+
+    ConfigurationManager_Initialize();
+
+    Events_Initialize();
+
+    CPU_GPIO_Initialize();
+
+#if (HAL_USE_CAN == TRUE)
+
+#if defined(STM32_CAN_USE_CAN1) && (STM32_CAN_USE_CAN1 == TRUE)
+    Can1_PAL.Driver = NULL;
+#endif
+#if (STM32_CAN_USE_CAN2) && (STM32_CAN_USE_CAN2 == TRUE)
+    Can2_PAL.Driver = NULL;
+#endif
+#if (STM32_CAN_USE_CAN3) && (STM32_CAN_USE_CAN3 == TRUE)
+    Can3_PAL.Driver = NULL;
+#endif
+
 #endif
 
     // Initialise Network Stack

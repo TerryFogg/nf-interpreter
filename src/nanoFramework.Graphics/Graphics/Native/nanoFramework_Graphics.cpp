@@ -890,12 +890,15 @@ static const CLR_RT_MethodHandler method_lookup[] =
     NULL,
     NULL,
     NULL,
+    Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration::EnableTouchCollection___STATIC__VOID__I4__I4__I4__I4__I4__nanoFrameworkUIBitmap,
     Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration::GetTouchPoints___STATIC__VOID__BYREF_I4__SZARRAY_I2__SZARRAY_I2,
-    Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration::GetTouchInput___STATIC__VOID__nanoFrameworkUITouchCollectorConfigurationTouchInput__BYREF_I4__BYREF_I4__BYREF_I4,
-    Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration::SetTouchInput___STATIC__VOID__nanoFrameworkUITouchCollectorConfigurationTouchInput__I4__I4__I4,
+    Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration::GetTouchInput___STATIC__VOID__nanoFrameworkUITouchCollectorConfigurationTouchInputCollector__BYREF_I4__BYREF_I4__BYREF_I4,
+    Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration::SetTouchInput___STATIC__VOID__nanoFrameworkUITouchCollectorConfigurationTouchInputCollector__I4__I4__I4,
     NULL,
     NULL,
     Library_nanoFramework_Graphics_nanoFramework_UI_TouchEventProcessor::ProcessEvent___nanoFrameworkRuntimeEventsBaseEvent__U4__U4__SystemDateTime,
+    NULL,
+    NULL,
     NULL,
     NULL,
     NULL,
@@ -905,6 +908,7 @@ static const CLR_RT_MethodHandler method_lookup[] =
     Library_nanoFramework_Graphics_nanoFramework_UI_TouchPanel::GetCalibrationPointCount___VOID__BYREF_I4,
     Library_nanoFramework_Graphics_nanoFramework_UI_TouchPanel::StartCalibration___VOID,
     Library_nanoFramework_Graphics_nanoFramework_UI_TouchPanel::GetCalibrationPoint___VOID__I4__BYREF_I4__BYREF_I4,
+    Library_nanoFramework_Graphics_nanoFramework_UI_TouchPanel::EnableInternal___VOID__BOOLEAN,
     NULL,
     NULL,
     NULL,
@@ -936,7 +940,7 @@ static const CLR_RT_MethodHandler method_lookup[] =
 const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_nanoFramework_Graphics =
 {
     "nanoFramework.Graphics",
-    0xA77924CB,
+    0xA0C32574,
     method_lookup,
     { 100, 0, 0, 2 }
 };

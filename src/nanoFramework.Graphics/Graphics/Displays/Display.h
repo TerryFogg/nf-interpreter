@@ -51,11 +51,12 @@ struct DisplayDriver
     void PowerSave(PowerSaveState powerState);
     void SetDefaultOrientation();
     bool ChangeOrientation(DisplayOrientation orientation);
-
-    CLR_UINT32 PixelsPerWord();
-    CLR_UINT32 WidthInWords();
-    CLR_UINT32 SizeInWords();
-    CLR_UINT32 SizeInBytes();
+    void SendDataDirect(CLR_INT16 x, CLR_INT16 y, CLR_INT16 width, CLR_INT16 height, CLR_UINT16 data[]);
+    CLR_INT16 PixelsPerWord();
+    CLR_INT16 WidthInWords();
+    CLR_INT16 SizeInWords();
+    CLR_INT16 SizeInBytes();
+    void WriteChar(unsigned char c, int row, int col);
 };
 
 #endif

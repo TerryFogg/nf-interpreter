@@ -19,6 +19,7 @@
 #define TOUCH_PANEL_CALIBRATION_POINT_ID          2
 #define TOUCH_PANEL_DEFAULT_TRANSIENT_BUFFER_SIZE 100
 #define TOUCH_PANEL_DEFAULT_STROKE_BUFFER_SIZE    200
+#define TOUCH_PANEL_MINIMUM_GESTURE_DISTANCE      10
 
 typedef CLR_UINT32 TOUCH_PANEL_SAMPLE_FLAGS;
 
@@ -173,7 +174,6 @@ class TouchPanelDriver
     static HRESULT GetSetTouchInfo(CLR_UINT32 flags, CLR_INT32 *param1, CLR_INT32 *param2, CLR_INT32 *param3);
     static HRESULT GetTouchPoint(CLR_UINT32 *flags, CLR_UINT16 *source, CLR_UINT16 *x, CLR_UINT16 *y, CLR_INT64 *time);
     static HRESULT GetTouchPoint(CLR_UINT32 *flags, CLR_UINT32 *location, CLR_INT64 *time);
-    //
 
     TOUCH_PANEL_SAMPLE_RATE SampleRate;
 
@@ -183,8 +183,7 @@ class TouchPanelDriver
     void GetPoint(TOUCH_PANEL_SAMPLE_FLAGS *pTipState, int *pSource, int *pUnCalX, int *pUnCalY);
     bool CalibrationPointGet(TOUCH_PANEL_CALIBRATION_POINT *pTCP);
 
-    ///
-  private:
+  //private:
     static HRESULT GetTouchPoint(CLR_UINT32 *flags, TouchPoint **point);
 
     static void TouchIsrProc(GPIO_PIN pin, bool pinState, void *pArg);
@@ -218,6 +217,8 @@ class TouchPanelDriver
         Contact_Down = 0x1,
         Contact_WasDown = 0x2,
     };
+     bool TouchInterruptOccured;
+
 };
 
 #endif // _TOUCHPANEL_H_

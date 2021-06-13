@@ -15,7 +15,6 @@
 #include "Core_Cm7.h"
 #include "STM32f769xx.h"
 
-#define UNUSED(x)  (void)x
 
 // This code module is written for a STM32F769I DISCOVERY board 
 // with MB1166 daughter board (K.O.D Optica Technology 480x800 TFT and touch screen)
@@ -26,7 +25,7 @@ extern  I2CDriver touchDriver;
 static CLR_UINT16 I2C_Address;
 
 
-bool TouchInterface::Initialize()
+bool TouchInterface::Initialize(TouchInterfaceConfig config)
 {
     // The FT6206 is connected to I2C4 of the STM32F769.
     // This is already configured by the chibios system in the file
@@ -43,9 +42,9 @@ bool TouchInterface::Initialize()
 CLR_UINT8* TouchInterface::Write_Read(CLR_UINT8* valuesToSend, CLR_UINT16 numberOfValuesToSend, CLR_UINT16 numberValuesExpected)
 {
     // TO BE DEVELOPED
-    UNUSED(valuesToSend);
-    UNUSED(numberOfValuesToSend);
-    UNUSED(numberValuesExpected);
+    (void)valuesToSend;
+    (void)numberOfValuesToSend;
+    (void)numberValuesExpected;
 
     //CLR_UINT8* receivedValues = NULL;
     //msg_t result = i2cMasterTransmitTimeout(&touchDriver, I2C_Address, valuesToSend, numberOfValuesToSend, receivedValues, numberValuesExpected, TIME_MS2I(20));
