@@ -1,9 +1,4 @@
-//
-// Copyright (c) .NET Foundation and Contributors
-// See LICENSE file in the project root for full license information.
-//
-
-#include "nanoFramework_Graphics.h"
+﻿#include "nanoFramework_Graphics.h"
 
 // clang-format off
 
@@ -183,7 +178,6 @@ static const CLR_RT_MethodHandler method_lookup[] =
     Library_nanoFramework_Graphics_nanoFramework_UI_Bitmap::SetPixel___VOID__I4__I4__U4,
     Library_nanoFramework_Graphics_nanoFramework_UI_Bitmap::GetPixelInt___U4__I4__I4,
     Library_nanoFramework_Graphics_nanoFramework_UI_Bitmap::DrawTextInRect___BOOLEAN__BYREF_STRING__BYREF_I4__BYREF_I4__I4__I4__I4__I4__U4__U4__nanoFrameworkUIFont,
-    NULL,
     NULL,
     NULL,
     NULL,
@@ -1054,7 +1048,7 @@ static const CLR_RT_MethodHandler method_lookup[] =
 const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_nanoFramework_Graphics =
 {
     "nanoFramework.Graphics",
-    0x6A3F90DD,
+    0x172C157A,
     method_lookup,
     { 100, 0, 0, 10 }
 };

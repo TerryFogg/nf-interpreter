@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (c) .NET Foundation and Contributors
 // Portions Copyright (c) Microsoft Corporation.  All rights reserved.
 // See LICENSE file in the project root for full license information.
@@ -69,9 +69,9 @@ __nfweak void HAL_COMPLETION::EnqueueTicks( uint64_t eventTimeTicks)
     NATIVE_PROFILE_PAL_ASYNC_PROC_CALL();
 }
 
-__nfweak void HAL_COMPLETION::EnqueueDelta( uint32_t uSecFromNow )
+__nfweak void HAL_COMPLETION::EnqueueDelta(uint32_t miliSecondsFromNow)
 {
-    (void)uSecFromNow;
+    (void)miliSecondsFromNow;
 
     NATIVE_PROFILE_PAL_ASYNC_PROC_CALL();
 }

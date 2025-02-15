@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (c) .NET Foundation and Contributors
 // Portions Copyright (c) Microsoft Corporation.  All rights reserved.
 // See LICENSE file in the project root for full license information.
@@ -119,7 +119,6 @@ struct HAL_COMPLETION : public HAL_CONTINUATION
     }
 
     void EnqueueTicks(uint64_t eventTimeTicks);
-    void EnqueueDelta64(uint64_t miliSecondsFromNow);
     void EnqueueDelta(uint32_t miliSecondsFromNow);
 
     void Abort();

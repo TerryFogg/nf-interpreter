@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (c) .NET Foundation and Contributors
 // Portions Copyright (c) Microsoft Corporation.  All rights reserved.
 // See LICENSE file in the project root for full license information.
@@ -70,7 +70,9 @@ struct Library_nf_rt_events_native_nanoFramework_Runtime_Events_GenericEvent
 {
     static const int FIELD__Category = 3;
     static const int FIELD__Data = 4;
-    static const int FIELD__Time = 5;
+    static const int FIELD__X = 5;
+    static const int FIELD__Y = 6;
+    static const int FIELD__Time = 7;
 
     //--//
 };

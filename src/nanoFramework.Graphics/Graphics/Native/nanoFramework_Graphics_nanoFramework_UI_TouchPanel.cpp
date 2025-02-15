@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (c) .NET Foundation and Contributors
 // Portions Copyright (c) Microsoft Corporation.  All rights reserved.
 // See LICENSE file in the project root for full license information.
@@ -10,7 +10,7 @@
 #include "nanoFramework_Graphics.h"
 
 extern DisplayDriver g_DisplayDriver;
-extern TouchPanelDriver g_TouchPanelDriver;
+extern TouchPanel g_TouchPanel;
 
 HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchPanel::
     SetCalibration___VOID__I4__SZARRAY_I2__SZARRAY_I2__SZARRAY_I2__SZARRAY_I2(CLR_RT_StackFrame &stack)
@@ -33,7 +33,7 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchPanel::
     uncalY = pArgs[3].DereferenceArray();
     FAULT_ON_NULL(uncalY);
 
-    NANOCLR_SET_AND_LEAVE(g_TouchPanelDriver.SetCalibration(
+    NANOCLR_SET_AND_LEAVE(g_TouchPanel.SetCalibration(
         stack.Arg1().NumericByRef().s4,
         (CLR_INT16 *)screenX->GetFirstElement(),
         (CLR_INT16 *)screenY->GetFirstElement(),
@@ -58,7 +58,7 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchPanel::GetCalibrati
     tcp.CalibrationX = 0;
     tcp.CalibrationY = 0;
 
-    NANOCLR_CHECK_HRESULT(g_TouchPanelDriver.GetDeviceCaps(TOUCH_PANEL_CALIBRATION_POINT_ID, &tcp));
+    NANOCLR_CHECK_HRESULT(g_TouchPanel.GetDeviceCaps(TOUCH_PANEL_CALIBRATION_POINT_ID, &tcp));
 
     hbX.SetInteger(tcp.CalibrationX);
     NANOCLR_CHECK_HRESULT(hbX.StoreToReference(stack.Arg2(), 0));
@@ -76,7 +76,7 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchPanel::StartCalibra
     {
     }; //  eliminate unused parameter error
 
-    NANOCLR_SET_AND_LEAVE(g_TouchPanelDriver.ResetCalibration());
+    NANOCLR_SET_AND_LEAVE(g_TouchPanel.ResetCalibration());
 
     NANOCLR_NOCLEANUP();
 }

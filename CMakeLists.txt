@@ -1,4 +1,4 @@
-#
+﻿#
 # Copyright (c) .NET Foundation and Contributors
 # See LICENSE file in the project root for full license information.
 #
@@ -7,6 +7,13 @@ cmake_minimum_required(VERSION 3.24)
 
 include(CMakeToolsHelpers OPTIONAL)
 include(ExternalProject)
+
+########################################################
+if ("${COMMUNITY_TARGET}" STREQUAL "ThreadX")
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/targets-community/ThreadX/CMake)
+    return()
+endif()
+########################################################
 
 if (BUILD_VERBOSE)
     set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON" FORCE) # debug helper

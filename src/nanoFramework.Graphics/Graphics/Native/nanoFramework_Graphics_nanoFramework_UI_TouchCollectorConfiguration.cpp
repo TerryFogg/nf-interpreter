@@ -9,7 +9,7 @@
 #include "TouchDevice.h"
 #include "nanoFramework_Graphics.h"
 
-extern TouchPanelDriver g_TouchPanelDriver;
+extern TouchPanel g_TouchPanel;
 
 HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration::
     GetTouchPoints___STATIC__VOID__BYREF_I4__SZARRAY_I2__SZARRAY_I2(CLR_RT_StackFrame &stack)
@@ -32,7 +32,7 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfigurat
     sy = pArgs[1].DereferenceArray();
     FAULT_ON_NULL(sy);
 
-    NANOCLR_CHECK_HRESULT(g_TouchPanelDriver.GetTouchPoints(
+    NANOCLR_CHECK_HRESULT(g_TouchPanel.GetTouchPoints(
         &count,
         (CLR_INT16 *)sx->GetFirstElement(),
         (CLR_INT16 *)sy->GetFirstElement()));
@@ -70,7 +70,7 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfigurat
 
     flags &= ~TouchInfo_Set;
 
-    NANOCLR_CHECK_HRESULT(g_TouchPanelDriver.GetSetTouchInfo(flags, &param1, &param2, &param3));
+    NANOCLR_CHECK_HRESULT(g_TouchPanel.GetSetTouchInfo(flags, &param1, &param2, &param3));
 
     hbParam1.SetInteger(param1);
     hbParam2.SetInteger(param2);
@@ -109,7 +109,7 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfigurat
 
     flags |= TouchInfo_Set;
 
-    NANOCLR_CHECK_HRESULT(g_TouchPanelDriver.GetSetTouchInfo(flags, &param1, &param2, &param3));
+    NANOCLR_CHECK_HRESULT(g_TouchPanel.GetSetTouchInfo(flags, &param1, &param2, &param3));
 
     NANOCLR_NOCLEANUP();
 }

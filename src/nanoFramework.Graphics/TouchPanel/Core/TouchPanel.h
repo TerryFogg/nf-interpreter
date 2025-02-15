@@ -1,17 +1,15 @@
+﻿#pragma once
 //
 // Copyright (c) .NET Foundation and Contributors
 // Portions Copyright (c) Microsoft Corporation.  All rights reserved.
 // See LICENSE file in the project root for full license information.
 //
 
-#ifndef TOUCHPANEL_H
-#define TOUCHPANEL_H
-
 #include "Graphics.h"
 
-//#define TOUCH_PANEL_SAMPLE_RATE_LOW             100
-//#define TOUCH_PANEL_SAMPLE_RATE_HIGH            100
-//#define RollingAverageBufferSize 8
+// #define TOUCH_PANEL_SAMPLE_RATE_LOW             100
+// #define TOUCH_PANEL_SAMPLE_RATE_HIGH            100
+// #define RollingAverageBufferSize 8
 
 #define TOUCH_PANEL_SAMPLE_RATE_ID                0
 #define TOUCH_PANEL_SAMPLE_MS_TO_TICKS(x)         (x * TIME_CONVERSION__TO_MILLISECONDS)
@@ -19,15 +17,17 @@
 #define TOUCH_PANEL_CALIBRATION_POINT_ID          2
 #define TOUCH_PANEL_DEFAULT_TRANSIENT_BUFFER_SIZE 100
 #define TOUCH_PANEL_DEFAULT_STROKE_BUFFER_SIZE    200
+#define TOUCH_PANEL_MINIMUM_GESTURE_DISTANCE      10
+#define GESTURE_STATE_COUNT                       10
 
 typedef CLR_UINT32 TOUCH_PANEL_SAMPLE_FLAGS;
 
 struct TOUCH_PANEL_SAMPLE_RATE
 {
-    CLR_INT32 SamplesPerSecondLow;
-    CLR_INT32 SamplesPerSecondHigh;
-    CLR_INT32 CurrentSampleRateSetting;
-    CLR_INT32 MaxTimeForMoveEvent_ticks;
+    CLR_INT32 SamplingPeriodLow;
+    CLR_INT32 SamplingPeriodHigh;
+    CLR_INT32 SamplingPeriodCurrent;
+    CLR_INT32 MaxTimeForMoveEvent_Milliseconds;
 };
 
 struct TOUCH_PANEL_CALIBRATION_POINT_COUNT
@@ -47,7 +47,6 @@ struct TOUCH_PANEL_CALIBRATION_POINT
 
 enum TouchPanel_SampleFlags
 {
-    TouchSampleValidFlag = 0x01,
     TouchSampleDownFlag = 0x02,
     TouchSampleIsCalibratedFlag = 0x04,
     TouchSamplePreviousDownFlag = 0x08,
@@ -76,8 +75,6 @@ enum TouchPanel_TouchInfoFlags
     TouchInfo_LastTouchPoint = 0x2,
     TouchInfo_SamplingDistance = 0x4,
     TouchInfo_StylusMoveFrequency = 0x8,
-    TouchInfo_SamplingReadsToIgnore = 0x10,
-    TouchInfo_SamplingReadsPerSample = 0x20,
     TouchInfo_SamplingFilterDistance = 0x40,
 };
 
@@ -97,11 +94,28 @@ enum TouchPointContactFlags
 enum GetTouchPointFlags
 {
     GetTouchPointFlags_LatestPoint = 0x0,
-    GetTouchPointFlags_EarliestPoint = 0x1,
-    GetTouchPointFlags_NextPoint = 0x2,
-    GetTouchPointFlags_PreviousPoint = 0x3,
-    GetTouchPointFlags_UseTime = 0x10,
-    GetTouchPointFlags_UseSource = 0x20,
+    GetTouchPointFlags_NextPoint = 0x1,
+};
+
+enum TouchGestures
+{
+    TouchGesture_NoGesture = 0, // Can be used to represent an error gesture or unknown gesture
+    TouchGesture_Begin = 1,     // Used to identify the beginning of a Gesture Sequence; App can use this to highlight
+                                // UIElement or some other sort of notification.
+    TouchGesture_End =
+        2, // Used to identify the end of a gesture sequence; Fired when last finger involved in a gesture is removed.
+
+    // Standard stylus (single touch) gestues
+    TouchGesture_Right = 3,
+    TouchGesture_UpRight = 4,
+    TouchGesture_Up = 5,
+    TouchGesture_UpLeft = 6,
+    TouchGesture_Left = 7,
+    TouchGesture_DownLeft = 8,
+    TouchGesture_Down = 9,
+    TouchGesture_DownRight = 10,
+    TouchGesture_Tap = 11,
+    TouchGesture_DoubleTap = 12,
 };
 
 struct TOUCH_PANEL_CalibrationData
@@ -118,19 +132,15 @@ struct TOUCH_PANEL_CalibrationData
 
 struct TOUCH_PANEL_SamplingSettings
 {
-    CLR_INT32 ReadsToIgnore;
-    CLR_INT32 ReadsPerSample;
-    CLR_INT32 MaxFilterDistance; /// This is actually sqaured value of the max distance allowed between two points.
     bool ActivePinStateForTouchDown;
     TOUCH_PANEL_SAMPLE_RATE SampleRate;
 };
 
 struct TouchPoint
 {
-    /// Location is a composite of source, x and y. bits 0-13: x, 14-27: y, 28-31: source.
-    /// Source is for multi touch support; 16 sources can be reported.
+    /// Location is a composite of  bits 0-13: x, 14-27: y
     CLR_UINT32 location;
-    /// Contact is a composite of flags, width, and height. bits 0-13: width, 14-27: height, 28-31: flags
+    /// Contact is a composite of  bits 0-13: width, 14-27: height, 28-31: flags
     CLR_UINT32 contact;
     CLR_INT64 time;
 };
@@ -154,14 +164,17 @@ struct TOUCH_PANEL_TouchCollectorData
     CLR_INT32 TouchCollectorY2;
     Hal_Queue_UnknownSize<TOUCH_PANEL_Point> TransientPointBuffer;
     Hal_Queue_UnknownSize<TOUCH_PANEL_Point> StrokePointBuffer;
-
-    /// ISSUE: Some questions here. I need partial redraw support, and also
-    /// need to lock this bitmap memory so gc won't move it.
-    PAL_GFX_Bitmap *CollectorBitmap;
-    CLR_UINT32 *BitmapData;
+};
+struct InkRegionInfo
+{
+    CLR_UINT16 X1, X2, Y1, Y2; /// Inking region in screen co-ordinates.
+    CLR_UINT16 BorderWidth;    /// border width for inking region
+    PAL_GFX_Bitmap *Bmp;       /// This field may be NULL, if not NULL it must be valid pinned memory.
+                               /// Other criterion is this bitmap must have size (X2-X1) x (Y2-Y1).
+    GFX_Pen Pen;
 };
 
-class TouchPanelDriver
+class TouchPanel
 {
   public:
     static HRESULT Initialize();
@@ -171,19 +184,20 @@ class TouchPanelDriver
     static HRESULT SetCalibration(int pointCount, CLR_INT16 *sx, CLR_INT16 *sy, CLR_INT16 *ux, CLR_INT16 *uy);
     static HRESULT GetTouchPoints(int *pointCount, CLR_INT16 *sx, CLR_INT16 *sy);
     static HRESULT GetSetTouchInfo(CLR_UINT32 flags, CLR_INT32 *param1, CLR_INT32 *param2, CLR_INT32 *param3);
-    static HRESULT GetTouchPoint(CLR_UINT32 *flags, CLR_UINT16 *source, CLR_UINT16 *x, CLR_UINT16 *y, CLR_INT64 *time);
+    static HRESULT GetTouchPoint(CLR_UINT32 *flags, CLR_UINT16 *x, CLR_UINT16 *y, CLR_INT64 *time);
     static HRESULT GetTouchPoint(CLR_UINT32 *flags, CLR_UINT32 *location, CLR_INT64 *time);
-    //
+    static void GestureDetect(CLR_INT16 x, CLR_INT16 y);
+
+    static HRESULT SetRegion(InkRegionInfo *inkRegionInfo);
+    static HRESULT ResetRegion();
+
+    static void DrawInk(void *arg);
 
     TOUCH_PANEL_SAMPLE_RATE SampleRate;
 
-    // static TOUCH_PANEL_CalibrationData g_TouchPanel_Calibration_Config;
-    // static TOUCH_PANEL_SamplingSettings g_TouchPanel_Sampling_Settings;
-
-    void GetPoint(TOUCH_PANEL_SAMPLE_FLAGS *pTipState, int *pSource, int *pUnCalX, int *pUnCalY);
+    void GetPoint(TOUCH_PANEL_SAMPLE_FLAGS *pTipState, int *pUnCalX, int *pUnCalY);
     bool CalibrationPointGet(TOUCH_PANEL_CALIBRATION_POINT *pTCP);
 
-    ///
   private:
     static HRESULT GetTouchPoint(CLR_UINT32 *flags, TouchPoint **point);
 
@@ -191,24 +205,15 @@ class TouchPanelDriver
     static void TouchCompletion(void *arg);
     void TouchPanelCalibratePoint(CLR_INT32 UncalX, CLR_INT32 UncalY, CLR_INT32 *pCalX, CLR_INT32 *pCalY);
 
-    // CLR_UINT16         GetTouchStylusFlags(unsigned int sampleFlags);
-    // void           SetDriverDefaultCalibrationData();
-
     void PollTouchPoint();
-    TouchPoint *AddTouchPoint(CLR_UINT16 source, CLR_UINT16 x, CLR_UINT16 y, CLR_INT64 time, bool fIgnoreDuplicate);
+    TouchPoint *AddTouchPoint(CLR_UINT16 x, CLR_UINT16 y, CLR_INT64 time);
 
     int m_touchMoveIndex;
     TouchPoint *m_startMovePtr;
-    TouchPoint m_tmpUpTouch;
     HAL_COMPLETION m_touchCompletion;
     TOUCH_PANEL_CalibrationData m_calibrationData;
-    CLR_INT32 m_samplingTimespan;
+    CLR_INT32 m_samplingPeriod;
     CLR_INT32 m_InternalFlags;
-    CLR_INT32 m_readCount;
-    CLR_INT32 m_runavgTotalX;
-    CLR_INT32 m_runavgTotalY;
-    CLR_INT32 m_runavgCount;
-    CLR_INT32 m_runavgIndex;
 
     CLR_INT32 m_head;
     CLR_INT32 m_tail;
@@ -219,5 +224,3 @@ class TouchPanelDriver
         Contact_WasDown = 0x2,
     };
 };
-
-#endif // TOUCHPANEL_H

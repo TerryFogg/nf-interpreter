@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (c) .NET Foundation and Contributors
 // Portions Copyright (c) Microsoft Corporation.  All rights reserved.
 // See LICENSE file in the project root for full license information.
@@ -7,12 +7,10 @@
 #include "Graphics.h"
 #include "TouchDevice.h"
 #include "nanoFramework_Graphics.h"
-#include "Ink.h"
-
-extern InkDriver g_InkDriver;
 
 // Save a copy of the bimapped used by inking
 static CLR_RT_HeapBlock *m_InkPinnedBitmap = NULL;
+extern TouchPanel g_TouchPanel;
 
 HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_Ink::
     SetInkRegion___STATIC__VOID__U4__I4__I4__I4__I4__I4__I4__I4__nanoFrameworkUIBitmap(CLR_RT_StackFrame &stack)
@@ -75,7 +73,7 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_Ink::
         NANOCLR_SET_AND_LEAVE(stack.NotImplementedStub());
     }
 
-    NANOCLR_CHECK_HRESULT(g_InkDriver.SetRegion(&inkRegionInfo));
+    NANOCLR_CHECK_HRESULT(g_TouchPanel.SetRegion(&inkRegionInfo));
 
     NANOCLR_NOCLEANUP();
 }
@@ -88,7 +86,7 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_Ink::ResetInkRegion___ST
     {
     }; //  eliminate unused parameter error
 
-    NANOCLR_CHECK_HRESULT(g_InkDriver.ResetRegion());
+    NANOCLR_CHECK_HRESULT(g_TouchPanel.ResetRegion());
 
     NANOCLR_NOCLEANUP();
 }

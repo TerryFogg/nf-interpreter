@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (c) .NET Foundation and Contributors
 // Portions Copyright (c) Microsoft Corporation.  All rights reserved.
 // See LICENSE file in the project root for full license information.
@@ -20,8 +20,6 @@ struct TouchPointDevice
 struct TouchDevice
 {
 
-    CLR_INT32 ReadsToIgnore;
-    CLR_INT32 ReadsPerSample;
     CLR_INT32 MaxFilterDistance;      // This is actually squared value of the max distance allowed between two points.
 
     bool Initialize();
