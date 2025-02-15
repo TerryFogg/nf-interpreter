@@ -14,10 +14,20 @@ CLR_UINT32 CLR_RT_GarbageCollector::ExecuteCompaction()
     g_CLR_PRF_Profiler.RecordHeapCompactionBegin();
 #endif
 
+    // bump the number of heap compactions
+    m_numberOfCompactions++;
+
 #if defined(NANOCLR_TRACE_MEMORY_STATS)
+
+    CLR_UINT64 stats_start = HAL_Time_CurrentSysTicks();
+    int ellapsedTimeMilliSec = 0;
+
     if (s_CLR_RT_fTrace_MemoryStats >= c_CLR_RT_Trace_Info)
     {
-        CLR_Debug::Printf("\r\nGC: performing heap compaction\r\n");
+        CLR_Debug::Printf(
+            "\r\n\r\nGC: Relocation - performing heap compaction run #%d @ %s\r\n",
+            m_numberOfCompactions,
+            HAL_Time_CurrentDateTimeToString());
     }
 #endif
 
@@ -29,8 +39,6 @@ CLR_UINT32 CLR_RT_GarbageCollector::ExecuteCompaction()
 
     CLR_RT_ExecutionEngine::ExecutionConstraint_Resume();
 
-    m_numberOfCompactions++;
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
 #if defined(NANOCLR_PROFILE_NEW_ALLOCATIONS)
     g_CLR_PRF_Profiler.RecordHeapCompactionEnd();
@@ -39,7 +47,14 @@ CLR_UINT32 CLR_RT_GarbageCollector::ExecuteCompaction()
 #if defined(NANOCLR_TRACE_MEMORY_STATS)
     if (s_CLR_RT_fTrace_MemoryStats >= c_CLR_RT_Trace_Info)
     {
-        CLR_Debug::Printf("\r\n\r\nGC: heap compaction completed\r\n");
+        CLR_INT64 elapsed = HAL_Time_CurrentSysTicks() - stats_start;
+        ellapsedTimeMilliSec =
+            (int)((::HAL_Time_SysTicksToTime(elapsed) + TIME_CONVERSION__TICKUNITS - 1) / TIME_CONVERSION__TICKUNITS);
+
+        CLR_Debug::Printf(
+            "\r\n\r\nGC: Relocation - heap compaction run #%d completed (took %dmsec)\r\n",
+            m_numberOfCompactions,
+            ellapsedTimeMilliSec);
     }
 #endif
 
@@ -472,19 +487,12 @@ void CLR_RT_GarbageCollector::Heap_Relocate_Pass(RelocateFtn ftn)
     NANOCLR_FOREACH_NODE(CLR_RT_HeapCluster, hc, g_CLR_RT_ExecutionEngine.m_heap)
     {
         CLR_RT_HeapBlock_Node *ptr = hc->m_payloadStart;
-        CLR_RT_HeapBlock_Node *end = hc->m_payloadEnd;
-
-        // check pointers
-        _ASSERTE(ptr >= (void *)s_CLR_RT_Heap.m_location);
-        _ASSERTE(ptr < (void *)(s_CLR_RT_Heap.m_location + s_CLR_RT_Heap.m_size));
-        _ASSERTE(end >= (void *)s_CLR_RT_Heap.m_location);
-        _ASSERTE(end <= (void *)(s_CLR_RT_Heap.m_location + s_CLR_RT_Heap.m_size));
+        CLR_RT_HeapBlock_Node const *end = hc->m_payloadEnd;
 
         while (ptr < end)
         {
             // check pointer
-            _ASSERTE(ptr >= (void *)s_CLR_RT_Heap.m_location);
-            _ASSERTE(ptr < (void *)(s_CLR_RT_Heap.m_location + s_CLR_RT_Heap.m_size));
+            _ASSERTE(ptr >= hc->m_payloadStart && ptr <= hc->m_payloadEnd);
 
             CLR_RT_HEAPBLOCK_RELOCATE(ptr);
 
@@ -544,20 +552,29 @@ void CLR_RT_GarbageCollector::Heap_Relocate(void **ref)
 #if defined(NANOCLR_TRACE_MEMORY_STATS)
         if (s_CLR_RT_fTrace_MemoryStats >= c_CLR_RT_Trace_Verbose)
         {
-            CLR_Debug::Printf("\r\nGC: Relocating Heap\r\n");
+            if (dst == nullptr)
+            {
+                // nothing to do here
+                CLR_Debug::Printf("\r\nGC: Skipping relocation as referenced object is null.\r\n");
+                return;
+            }
+            else
+            {
+                CLR_Debug::Printf("\r\nGC: Relocating Heap\r\n");
+            }
         }
 #endif
 
         if (dst >= g_CLR_RT_GarbageCollector.m_relocMinimum && dst < g_CLR_RT_GarbageCollector.m_relocMaximum)
         {
-            RelocationRegion *relocBlocks = g_CLR_RT_GarbageCollector.m_relocBlocks;
+            RelocationRegion const *relocBlocks = g_CLR_RT_GarbageCollector.m_relocBlocks;
             size_t left = 0;
             size_t right = g_CLR_RT_GarbageCollector.m_relocCount;
 
             while (left < right)
             {
                 size_t center = (left + right) / 2;
-                RelocationRegion &relocCurrent = relocBlocks[center];
+                RelocationRegion const &relocCurrent = relocBlocks[center];
 
                 if (dst < relocCurrent.m_start)
                 {
@@ -570,8 +587,6 @@ void CLR_RT_GarbageCollector::Heap_Relocate(void **ref)
                 else
                 {
                     destinationAddress = (void *)(dst + relocCurrent.m_offset);
-                    _ASSERTE(destinationAddress >= (void *)s_CLR_RT_Heap.m_location);
-                    _ASSERTE(destinationAddress < (void *)(s_CLR_RT_Heap.m_location + s_CLR_RT_Heap.m_size));
 
                     *ref = destinationAddress;
 
