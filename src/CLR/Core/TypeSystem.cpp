@@ -3073,7 +3073,7 @@ bool CLR_RT_Assembly::FindTypeDef(const char *name, const char *nameSpace, CLR_R
             const char *szNameSpace = GetString(target->nameSpace);
             const char *szName = GetString(target->name);
 
-            if (szNameSpace == "nanoFramework.Touch" && szName == "TouchEvent")
+            if (szNameSpace == "nanoFramework.UI" && szName == "TouchEvent")
             {
                 idx.Set(m_idx, i);
             }
