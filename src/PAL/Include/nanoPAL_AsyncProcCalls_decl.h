@@ -119,7 +119,6 @@ struct HAL_COMPLETION : public HAL_CONTINUATION
     }
 
     void EnqueueTicks(uint64_t eventTimeTicks);
-    void EnqueueDelta64(uint64_t miliSecondsFromNow);
     void EnqueueDelta(uint32_t miliSecondsFromNow);
 
     void Abort();

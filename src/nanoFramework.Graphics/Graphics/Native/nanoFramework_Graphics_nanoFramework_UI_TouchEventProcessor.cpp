@@ -34,22 +34,15 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchEventProcessor::
     }
 
     // Initialize the fields of the TouchEvent object.
-    touchEvent[Library_nf_rt_events_native_nanoFramework_Runtime_Events_BaseEvent::FIELD__Source].SetInteger(
-        (CLR_UINT16)0);
-    touchEvent[Library_nanoFramework_Graphics_nanoFramework_UI_Input_RawTouchInputReport::FIELD__EventMessage]
-        .SetInteger((CLR_UINT8)data1 & 0x00ff);
-    touchEvent[Library_nanoFramework_Graphics_nanoFramework_UI_TouchEvent::FIELD__Time].SetInteger(
-        stack.Arg3().NumericByRef().s8);
-    touchEvent[Library_nanoFramework_Graphics_nanoFramework_UI_TouchEvent::FIELD__Time].ChangeDataType(
-        DATATYPE_DATETIME);
+    touchEvent[Library_nf_rt_events_native_nanoFramework_Runtime_Events_BaseEvent::FIELD__Source].SetInteger((CLR_UINT16)0);
+    touchEvent[Library_nanoFramework_Graphics_nanoFramework_UI_Input_RawTouchInputReport::FIELD__EventMessage].SetInteger((CLR_UINT8)data1 & 0x00ff);
 
-    NANOCLR_CHECK_HRESULT(CLR_RT_HeapBlock_Array::CreateInstance(
-        touchEvent[Library_nanoFramework_Graphics_nanoFramework_UI_TouchEvent::FIELD__Touches],
-        numTouches,
-        g_CLR_RT_WellKnownTypes.m_TouchInput));
+    touchEvent[Library_nanoFramework_Graphics_nanoFramework_UI_TouchEvent::FIELD__Time].SetInteger(stack.Arg3().NumericByRef().s8 + 504911232000000000);
+    touchEvent[Library_nanoFramework_Graphics_nanoFramework_UI_TouchEvent::FIELD__Time].ChangeDataType(DATATYPE_DATETIME);
 
-    touchInputArray =
-        touchEvent[Library_nanoFramework_Graphics_nanoFramework_UI_TouchEvent::FIELD__Touches].DereferenceArray();
+    NANOCLR_CHECK_HRESULT(CLR_RT_HeapBlock_Array::CreateInstance(touchEvent[Library_nanoFramework_Graphics_nanoFramework_UI_TouchEvent::FIELD__Touches],numTouches,g_CLR_RT_WellKnownTypes.m_TouchInput));
+
+    touchInputArray =touchEvent[Library_nanoFramework_Graphics_nanoFramework_UI_TouchEvent::FIELD__Touches].DereferenceArray();
     if (!touchInputArray)
     {
         NANOCLR_SET_AND_LEAVE(CLR_E_OUT_OF_MEMORY);
@@ -67,35 +60,9 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchEventProcessor::
         }
 
         CLR_UINT32 location = touchPoint->location;
-        touchInput[Library_nanoFramework_Graphics_nanoFramework_UI_TouchInput::FIELD__X].SetInteger(
-            (CLR_INT32)(location & 0x3fff));
-        touchInput[Library_nanoFramework_Graphics_nanoFramework_UI_TouchInput::FIELD__Y].SetInteger(
-            (CLR_INT32)((location >> 14) & 0x3fff));
-        touchInput[Library_nanoFramework_Graphics_nanoFramework_UI_TouchInput::FIELD__SourceID].SetInteger(
-            (CLR_UINT8)(location >> 28));
+        touchInput[Library_nanoFramework_Graphics_nanoFramework_UI_TouchInput::FIELD__X].SetInteger((CLR_INT32)(location & 0x3fff));
+        touchInput[Library_nanoFramework_Graphics_nanoFramework_UI_TouchInput::FIELD__Y].SetInteger((CLR_INT32)((location >> 14) & 0x3fff));
 
-        CLR_UINT32 contact = touchPoint->contact;
-        CLR_UINT32 flags = TouchInputFlags_None;
-
-        if ((contact & TouchPointContactFlags_Primary) != 0)
-        {
-            flags |= TouchInputFlags_Primary;
-        }
-        if ((contact & TouchPointContactFlags_Pen) != 0)
-        {
-            flags |= TouchInputFlags_Pen;
-        }
-        if ((contact & TouchPointContactFlags_Palm) != 0)
-        {
-            flags |= TouchInputFlags_Palm;
-        }
-
-        touchInput[Library_nanoFramework_Graphics_nanoFramework_UI_TouchInput::FIELD__Flags].SetInteger(
-            (CLR_UINT32)flags);
-        touchInput[Library_nanoFramework_Graphics_nanoFramework_UI_TouchInput::FIELD__ContactWidth].SetInteger(
-            (CLR_UINT32)(contact & 0x3ff));
-        touchInput[Library_nanoFramework_Graphics_nanoFramework_UI_TouchInput::FIELD__ContactHeight].SetInteger(
-            (CLR_UINT32)((contact >> 14) & 0x3ff));
     }
 
     NANOCLR_NOCLEANUP();

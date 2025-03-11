@@ -70,7 +70,9 @@ struct Library_nf_rt_events_native_nanoFramework_Runtime_Events_GenericEvent
 {
     static const int FIELD__Category = 3;
     static const int FIELD__Data = 4;
-    static const int FIELD__Time = 5;
+    static const int FIELD__X = 5;
+    static const int FIELD__Y = 6;
+    static const int FIELD__Time = 7;
 
     //--//
 };

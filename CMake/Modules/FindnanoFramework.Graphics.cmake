@@ -1,4 +1,4 @@
-#
+﻿#
 # Copyright (c) .NET Foundation and Contributors
 # See LICENSE file in the project root for full license information.
 #
@@ -78,17 +78,12 @@ list(APPEND nanoFramework.Graphics_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/nanoFra
         GraphicsMemoryHeap.cpp
         
         nanoFramework_Graphics.cpp
-        nanoFramework_Graphics_nanoFramework_UI_Ink.cpp
-        nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration.cpp
-        nanoFramework_Graphics_nanoFramework_UI_TouchEventProcessor.cpp
-        nanoFramework_Graphics_nanoFramework_UI_TouchPanel.cpp
         nanoFramework_Graphics_nanoFramework_UI_Bitmap.cpp
         nanoFramework_Graphics_nanoFramework_UI_DisplayControl.cpp
         nanoFramework_Graphics_nanoFramework_UI_Font.cpp
+        nanoFramework_Graphics_nanoFramework_UI_TouchEventProcessor.cpp
         
         TouchPanel.cpp
-        Gestures.cpp
-        Ink.cpp
         
         #Common Display/Touch Code
         "${GRAPHICS_DISPLAY}"
