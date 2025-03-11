@@ -37,6 +37,8 @@ HRESULT Library_nanoFramework_Graphics_nanoFramework_UI_TouchEventProcessor::
     touchEvent[Library_nf_rt_events_native_nanoFramework_Runtime_Events_BaseEvent::FIELD__Source].SetInteger((CLR_UINT16)0);
     touchEvent[Library_nanoFramework_Graphics_nanoFramework_UI_Input_RawTouchInputReport::FIELD__EventMessage].SetInteger((CLR_UINT8)data1 & 0x00ff);
 
+    // Add the number of 100 nanoSeconds at 01/01/1601 to the to time
+    // to get past a test in the C# datetime test that only accepts dates greater than 01/01/1601
     touchEvent[Library_nanoFramework_Graphics_nanoFramework_UI_TouchEvent::FIELD__Time].SetInteger(stack.Arg3().NumericByRef().s8 + 504911232000000000);
     touchEvent[Library_nanoFramework_Graphics_nanoFramework_UI_TouchEvent::FIELD__Time].ChangeDataType(DATATYPE_DATETIME);
 
