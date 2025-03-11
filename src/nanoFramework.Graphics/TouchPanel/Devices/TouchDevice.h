@@ -20,10 +20,6 @@ struct TouchPointDevice
 struct TouchDevice
 {
 
-    CLR_INT32 ReadsToIgnore;
-    CLR_INT32 ReadsPerSample;
-    CLR_INT32 MaxFilterDistance;      // This is actually squared value of the max distance allowed between two points.
-
     bool Initialize();
     TouchPointDevice GetPoint();
     bool Enable(GPIO_INTERRUPT_SERVICE_ROUTINE touchIsrProc);

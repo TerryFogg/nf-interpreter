@@ -80,21 +80,6 @@ typedef enum __nfpack SetWindowType
 } SetWindowType;
 */
 
-typedef enum __nfpack TouchCollectorConfiguration_TouchInput
-{
-    TouchCollectorConfiguration_TouchInput_LastTouchPoint = 2,
-    TouchCollectorConfiguration_TouchInput_SamplingDistance = 4,
-    TouchCollectorConfiguration_TouchInput_TouchMoveFrequency = 8,
-} TouchCollectorConfiguration_TouchInput;
-
-typedef enum __nfpack TouchInputFlags
-{
-    TouchInputFlags_None = 0,
-    TouchInputFlags_Primary = 16,
-    TouchInputFlags_Pen = 64,
-    TouchInputFlags_Palm = 128,
-} TouchInputFlags;
-
 struct Library_nanoFramework_Graphics_nanoFramework_UI_RoutedEvent
 {
     static const int FIELD_STATIC___eventCount = 0;
@@ -137,7 +122,6 @@ struct Library_nanoFramework_Graphics_nanoFramework_UI_TouchGestureEventArgs
     static const int FIELD__Gesture = 2;
     static const int FIELD__X = 3;
     static const int FIELD__Y = 4;
-    static const int FIELD__Arguments = 5;
 
     //--//
 };
@@ -411,19 +395,6 @@ struct Library_nanoFramework_Graphics_nanoFramework_Presentation_Controls_Drawin
 struct Library_nanoFramework_Graphics_nanoFramework_Presentation_Controls_Image
 {
     static const int FIELD___bitmap = 37;
-
-    //--//
-};
-
-struct Library_nanoFramework_Graphics_nanoFramework_Presentation_Controls_InkCanvas
-{
-    static const int FIELD___defaultDrawingAttributes = 37;
-    static const int FIELD___bitmap = 38;
-    static const int FIELD___borderWidth = 39;
-    static const int FIELD___width = 40;
-    static const int FIELD___height = 41;
-    static const int FIELD___top = 42;
-    static const int FIELD___left = 43;
 
     //--//
 };
@@ -767,10 +738,6 @@ struct Library_nanoFramework_Graphics_nanoFramework_UI_TouchInput
 {
     static const int FIELD__X = 1;
     static const int FIELD__Y = 2;
-    static const int FIELD__SourceID = 3;
-    static const int FIELD__Flags = 4;
-    static const int FIELD__ContactWidth = 5;
-    static const int FIELD__ContactHeight = 6;
 
     //--//
 };
@@ -779,14 +746,6 @@ struct Library_nanoFramework_Graphics_nanoFramework_UI_Input_TouchDevice
 {
     static const int FIELD___inputManager = 2;
     static const int FIELD___focus = 3;
-
-    //--//
-};
-
-struct Library_nanoFramework_Graphics_nanoFramework_Runtime_Events_GenericEventEx
-{
-    static const int FIELD__X = 6;
-    static const int FIELD__Y = 7;
 
     //--//
 };
@@ -911,14 +870,6 @@ struct Library_nanoFramework_Graphics_nanoFramework_UI_GraphicDriver
     static const int FIELD___brightness = 15;
     static const int FIELD___defaultOrientation = 16;
     static const int FIELD___setWindowType = 17;
-
-    //--//
-};
-
-struct Library_nanoFramework_Graphics_nanoFramework_UI_Ink
-{
-    NANOCLR_NATIVE_DECLARE(SetInkRegion___STATIC__VOID__U4__I4__I4__I4__I4__I4__I4__I4__nanoFrameworkUIBitmap);
-    NANOCLR_NATIVE_DECLARE(ResetInkRegion___STATIC__VOID);
 
     //--//
 };
@@ -1064,31 +1015,6 @@ struct Library_nanoFramework_Graphics_nanoFramework_UI_Threading_DispatcherTimer
 struct Library_nanoFramework_Graphics_nanoFramework_UI_Touch
 {
     static const int FIELD_STATIC___initialized = 33;
-    static const int FIELD_STATIC___activeTouchPanel = 34;
-
-    //--//
-};
-
-struct Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollector
-{
-    static const int FIELD___nativeBufferSize = 1;
-    static const int FIELD__lastTime = 2;
-
-    //--//
-};
-
-struct Library_nanoFramework_Graphics_nanoFramework_UI_TouchCollectorConfiguration
-{
-    static const int FIELD_STATIC___collectionMode = 35;
-    static const int FIELD_STATIC___collectionMethod = 36;
-    static const int FIELD_STATIC___touchCollector = 37;
-    static const int FIELD_STATIC___collectionBufferSize = 38;
-
-    NANOCLR_NATIVE_DECLARE(GetTouchPoints___STATIC__VOID__BYREF_I4__SZARRAY_I2__SZARRAY_I2);
-    NANOCLR_NATIVE_DECLARE(
-        GetTouchInput___STATIC__VOID__nanoFrameworkUITouchCollectorConfigurationTouchInput__BYREF_I4__BYREF_I4__BYREF_I4);
-    NANOCLR_NATIVE_DECLARE(
-        SetTouchInput___STATIC__VOID__nanoFrameworkUITouchCollectorConfigurationTouchInput__I4__I4__I4);
 
     //--//
 };
@@ -1104,16 +1030,6 @@ struct Library_nanoFramework_Graphics_nanoFramework_UI_TouchEvent
 struct Library_nanoFramework_Graphics_nanoFramework_UI_TouchEventProcessor
 {
     NANOCLR_NATIVE_DECLARE(ProcessEvent___nanoFrameworkRuntimeEventsBaseEvent__U4__U4__SystemDateTime);
-
-    //--//
-};
-
-struct Library_nanoFramework_Graphics_nanoFramework_UI_TouchPanel
-{
-    NANOCLR_NATIVE_DECLARE(SetCalibration___VOID__I4__SZARRAY_I2__SZARRAY_I2__SZARRAY_I2__SZARRAY_I2);
-    NANOCLR_NATIVE_DECLARE(GetCalibrationPointCount___VOID__BYREF_I4);
-    NANOCLR_NATIVE_DECLARE(StartCalibration___VOID);
-    NANOCLR_NATIVE_DECLARE(GetCalibrationPoint___VOID__I4__BYREF_I4__BYREF_I4);
 
     //--//
 };
@@ -1146,9 +1062,7 @@ struct Library_nanoFramework_Graphics_nanoFramework_UI_TouchScreen
     static const int FIELD__OnTouchDown = 4;
     static const int FIELD__OnTouchMove = 5;
     static const int FIELD__OnTouchUp = 6;
-    static const int FIELD__OnGestureStarted = 7;
-    static const int FIELD__OnGestureChanged = 8;
-    static const int FIELD__OnGestureEnded = 9;
+    static const int FIELD__OnGestureChanged = 7;
 
     //--//
 };

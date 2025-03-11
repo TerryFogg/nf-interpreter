@@ -336,7 +336,7 @@ int Sockets_LWIP_Driver::Read(int ComPortNum, char *Data, size_t size)
                 // set timeout since another connection is trying to use us.
                 if (!s_DebuggerTimeoutCompletion.IsLinked())
                 {
-                    s_DebuggerTimeoutCompletion.EnqueueDelta(5000000); // 5 seconds
+                    s_DebuggerTimeoutCompletion.EnqueueDelta(5000); // 5 seconds
                 }
             }
             else // we are in the listening state, so accept the pending connection and update the state

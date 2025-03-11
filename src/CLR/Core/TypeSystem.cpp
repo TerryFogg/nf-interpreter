@@ -2857,8 +2857,8 @@ static const TypeIndexLookup c_TypeIndexLookup[] = {
 
     TIL("nanoFramework.UI", "Bitmap", m_Bitmap),
     TIL("nanoFramework.UI", "Font", m_Font),
-    TIL("nanoFramework.Touch", "TouchEvent", m_TouchEvent),
-    TIL("nanoFramework.Touch", "TouchInput", m_TouchInput),
+    TIL("nanoFramework.UI", "TouchEvent", m_TouchEvent),
+    TIL("nanoFramework.UI", "TouchInput", m_TouchInput),
 
     TIL("System.Net.NetworkInformation", "NetworkInterface", m_NetworkInterface),
     TIL("System.Net.NetworkInformation", "Wireless80211Configuration", m_Wireless80211Configuration),
@@ -3080,6 +3080,10 @@ bool CLR_RT_Assembly::FindTypeDef(const char *name, const char *nameSpace, CLR_R
             const char *szNameSpace = GetString(target->nameSpace);
             const char *szName = GetString(target->name);
 
+            if (strcmp(szNameSpace, "nanoFramework.UI") && strcmp(szName, "TouchEvent"))
+            {
+                idx.Set(m_idx, i);
+            }
             if (!strcmp(szName, name) && !strcmp(szNameSpace, nameSpace))
             {
                 idx.Set(m_idx, i);

@@ -1,4 +1,4 @@
-{
+﻿{
     "version": 4,
     "include": [
         "../../../CMake/arm-gcc.json",
@@ -28,7 +28,10 @@
                 "SWO_OUTPUT": "OFF",
                 "NF_FEATURE_HAS_USB_MSD": "OFF",
                 "NF_FEATURE_USE_LITTLEFS": "OFF",
-                "NF_FEATURE_HAS_ACCESSIBLE_STORAGE": "OFF",                
+                "NF_FEATURE_HAS_ACCESSIBLE_STORAGE": "OFF",
+
+                "USE_SECURITY_MBEDTLS_OPTION": "FALSE",
+
                 "NF_BUILD_RTM": "OFF",
                 "API_System.Math": "ON",
                 "API_Hardware.Stm32": "ON",
