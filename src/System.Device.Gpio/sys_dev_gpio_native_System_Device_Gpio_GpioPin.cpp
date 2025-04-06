@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (c) .NET Foundation and Contributors
 // Portions Copyright (c) Microsoft Corporation.  All rights reserved.
 // See LICENSE file in the project root for full license information.
@@ -137,7 +137,7 @@ HRESULT Library_sys_dev_gpio_native_System_Device_Gpio_GpioPin::NativeSetPinMode
 
         PinMode driveMode = (PinMode)stack.Arg1().NumericByRef().s4;
 
-        NANOCLR_CHECK_HRESULT(SetPinMode(pThis, driveMode));
+        NANOCLR_CHECK_HRESULT(RegisterPinMode(pThis, driveMode));
 
         // protect this from GC so that the callback is where it's supposed to
         CLR_RT_ProtectFromGC gc(*pThis);
@@ -248,7 +248,7 @@ HRESULT Library_sys_dev_gpio_native_System_Device_Gpio_GpioPin::ExtractDebounceT
     NANOCLR_NOCLEANUP();
 }
 
-HRESULT Library_sys_dev_gpio_native_System_Device_Gpio_GpioPin::SetPinMode(CLR_RT_HeapBlock *gpioPin, PinMode pinMode)
+HRESULT Library_sys_dev_gpio_native_System_Device_Gpio_GpioPin::RegisterPinMode(CLR_RT_HeapBlock *gpioPin, PinMode pinMode)
 {
     NANOCLR_HEADER();
 

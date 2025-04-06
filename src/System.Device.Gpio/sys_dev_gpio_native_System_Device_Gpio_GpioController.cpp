@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (c) .NET Foundation and Contributors
 // Portions Copyright (c) Microsoft Corporation.  All rights reserved.
 // See LICENSE file in the project root for full license information.
@@ -87,7 +87,7 @@ HRESULT Library_sys_dev_gpio_native_System_Device_Gpio_GpioController::SetPinMod
         NANOCLR_SET_AND_LEAVE(CLR_E_INVALID_OPERATION);
     }
 
-    NANOCLR_CHECK_HRESULT(GpioPin::SetPinMode(gpioPin, driveMode));
+    NANOCLR_CHECK_HRESULT(GpioPin::RegisterPinMode(gpioPin, driveMode));
 
     NANOCLR_NOCLEANUP();
 }

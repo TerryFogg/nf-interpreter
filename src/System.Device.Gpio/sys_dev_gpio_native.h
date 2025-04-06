@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (c) .NET Foundation and Contributors
 // Portions Copyright (c) Microsoft Corporation.  All rights reserved.
 // See LICENSE file in the project root for full license information.
@@ -64,7 +64,7 @@ struct Library_sys_dev_gpio_native_System_Device_Gpio_GpioPin
     //--//
 
     static HRESULT ExtractDebounceTimeSpanValue(CLR_RT_HeapBlock &timeSpanValue, CLR_UINT64 &value);
-    static HRESULT SetPinMode(CLR_RT_HeapBlock *gpioPin, PinMode pinMode);
+    static HRESULT RegisterPinMode(CLR_RT_HeapBlock *gpioPin, PinMode pinMode);
     static HRESULT Write(CLR_RT_HeapBlock *gpioPin, GpioPinValue pinValue);
     static HRESULT Read(CLR_RT_HeapBlock *gpioPin, bool &pinValue);
 };

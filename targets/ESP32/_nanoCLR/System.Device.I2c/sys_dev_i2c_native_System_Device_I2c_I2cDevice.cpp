@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright (c) .NET Foundation and Contributors
 // See LICENSE file in the project root for full license information.
 //
@@ -263,8 +263,6 @@ HRESULT Library_sys_dev_i2c_native_System_Device_I2c_I2cDevice::
     i2c_cmd_link_delete(cmd);
 
     // create return object
-    NANOCLR_CHECK_HRESULT(
-        g_CLR_RT_ExecutionEngine.NewObjectFromIndex(top, g_CLR_RT_WellKnownTypes.m_I2cTransferResult));
 
     result = top.Dereference();
     FAULT_ON_NULL(result);
